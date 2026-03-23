@@ -6,6 +6,10 @@ const app     = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+app.get('/', (req, res) => {
+  res.send('Bodyshop Engine is live 🚀');
+});
+
 app.get('/api/products', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync('./formulas.json', 'utf8'));
@@ -25,6 +29,8 @@ app.post('/api/calculate', (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Bodyshop engine running at http://localhost:3000');
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Bodyshop engine running on port ${port}`);
 });
