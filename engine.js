@@ -1,6 +1,30 @@
 const fs = require('fs');
+const path = require('path');
 
-const { benchmarks, thresholds } = JSON.parse(fs.readFileSync('./formulas.json', 'utf8'));
+let benchmarks = {};
+let thresholds = {};
+
+try {
+  const filePath = path.join(__dirname, 'formulas.json');
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error('formulas.json not found');
+  }
+
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+  benchmarks = parsed.benchmarks;
+  thresholds = parsed.thresholds;
+
+  console.log("formulas.json loaded successfully");
+
+} catch (err) {
+  console.error("Error loading formulas.json:", err.message);
+
+  // Optional: fallback defaults (keeps engine stable)
+  benchmarks = benchmarks || {};
+  thresholds = thresholds || {};
+}
 
 // ── Mode detection ────────────────────────────────────────────────────────────
 function detectMode(input) {
