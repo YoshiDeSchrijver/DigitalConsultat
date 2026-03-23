@@ -1,8 +1,18 @@
+console.log("Starting Bodyshop Engine...");
+
 const express = require('express');
-const path    = require('path');
-const fs      = require('fs');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
+
+// Load engine once
+let run;
+try {
+  run = require('./engine.js').run;
+} catch (err) {
+  console.error("Engine load error:", err.message);
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
@@ -13,14 +23,23 @@ app.get('/', (req, res) => {
 
 app.get('/api/products', (req, res) => {
   try {
-    const data = JSON.parse(
-      fs.readFileSync(path.join(__dirname, 'formulas.json'), 'utf8')
-    );
+    const filePath = path.join(__dirname, 'formulas.json');
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(500).json({
+        ok: false,
+        error: 'formulas.json not found'
+      });
+    }
+
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
     res.json({
       ok: true,
       products: data.products,
       emm_process_data: data.emm_process_data
     });
+
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -28,9 +47,16 @@ app.get('/api/products', (req, res) => {
 
 app.post('/api/calculate', (req, res) => {
   try {
-    const { run } = require('./engine.js');
+    if (!run) {
+      return res.status(500).json({
+        ok: false,
+        error: 'engine.js missing or broken'
+      });
+    }
+
     const result = run(req.body);
     res.json({ ok: true, data: result });
+
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
