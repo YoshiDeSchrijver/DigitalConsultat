@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const app = express();
 
-// Load engine once
+// Load engine safely
 let run;
 try {
   run = require('./engine.js').run;
@@ -62,6 +62,7 @@ app.post('/api/calculate', (req, res) => {
   }
 });
 
+// 🚀 CRITICAL FOR RAILWAY
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
