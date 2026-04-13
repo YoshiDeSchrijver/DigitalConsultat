@@ -86,6 +86,74 @@
       }
     }
   },
+  "product_systems": [
+    {
+      "id": "SYS001",
+      "stage": "Spraybooth Maintenance",
+      "name": "Spraybooth Maintenance System",
+      "product_ids": ["PROD001", "PROD002", "PROD003"],
+      "total_cost_per_repair_eur": 0.8773,
+      "minutes_per_repair": 2.17,
+      "pct_of_total_time": 0.0077,
+      "pct_of_total_cost": 0.0401,
+      "active": true
+    },
+    {
+      "id": "SYS002",
+      "stage": "Masking",
+      "name": "Masking System",
+      "product_ids": ["PROD005", "PROD006", "PROD007", "PROD008", "PROD009", "PROD010"],
+      "total_cost_per_repair_eur": 6.396,
+      "minutes_per_repair": 40,
+      "pct_of_total_time": 0.1427,
+      "pct_of_total_cost": 0.2927,
+      "active": true
+    },
+    {
+      "id": "SYS003",
+      "stage": "Sanding & Surface preparation",
+      "name": "Sanding & Surface Preparation System",
+      "product_ids": ["PROD011", "PROD012", "PROD013", "PROD014"],
+      "total_cost_per_repair_eur": 8.694,
+      "minutes_per_repair": 166,
+      "pct_of_total_time": 0.5924,
+      "pct_of_total_cost": 0.3978,
+      "active": true
+    },
+    {
+      "id": "SYS004",
+      "stage": "Paint Preparation",
+      "name": "Paint Preparation System",
+      "product_ids": ["PROD015", "PROD016"],
+      "total_cost_per_repair_eur": 3.900,
+      "minutes_per_repair": 45,
+      "pct_of_total_time": 0.1606,
+      "pct_of_total_cost": 0.1785,
+      "active": true
+    },
+    {
+      "id": "SYS005",
+      "stage": "Personal Protection",
+      "name": "Personal Protection System",
+      "product_ids": ["PROD017", "PROD018", "PROD019", "PROD020"],
+      "total_cost_per_repair_eur": 1.375,
+      "minutes_per_repair": 7,
+      "pct_of_total_time": 0.025,
+      "pct_of_total_cost": 0.0629,
+      "active": true
+    },
+    {
+      "id": "SYS006",
+      "stage": "Polishing",
+      "name": "Polishing System",
+      "product_ids": ["PROD021", "PROD022", "PROD023"],
+      "total_cost_per_repair_eur": 0.610,
+      "minutes_per_repair": 20,
+      "pct_of_total_time": 0.0714,
+      "pct_of_total_cost": 0.0279,
+      "active": true
+    }
+  ],
   "products": [
     {
       "id": "PROD001",

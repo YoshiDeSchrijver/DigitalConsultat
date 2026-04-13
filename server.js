@@ -14,39 +14,42 @@ try {
   console.error("Engine load error:", err.message);
 }
 
+// Cache formulas.json at startup
+let formulasCache = null;
+try {
+  formulasCache = JSON.parse(fs.readFileSync(path.join(__dirname, 'formulas.json'), 'utf8'));
+  console.log("formulas.json loaded into cache.");
+} catch (err) {
+  console.error("Failed to load formulas.json:", err.message);
+}
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
   res.send('Bodyshop Engine is live 🚀');
 });
 
 app.get('/api/products', (req, res) => {
-  try {
-    const filePath = path.join(__dirname, 'formulas.json');
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(500).json({
-        ok: false,
-        error: 'formulas.json not found'
-      });
-    }
-
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
-    res.json({
-      ok: true,
-      products: data.products,
-      emm_process_data: data.emm_process_data
-    });
-
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+  if (!formulasCache) {
+    return res.status(500).json({ ok: false, error: 'formulas.json not available' });
   }
+  res.json({
+    ok: true,
+    products: formulasCache.products,
+    product_systems: formulasCache.product_systems,
+    emm_process_data: formulasCache.emm_process_data
+  });
 });
 
 app.post('/api/calculate', (req, res) => {
   try {
+    const required = ['repairs_per_year', 'preparation_workers', 'spray_painters', 'amount_spraybooths'];
+    const missing = required.filter(f => req.body[f] === undefined || req.body[f] === null);
+    if (missing.length > 0) {
+      return res.status(400).json({ ok: false, error: `Missing required fields: ${missing.join(', ')}` });
+    }
+
     if (!run) {
       return res.status(500).json({
         ok: false,

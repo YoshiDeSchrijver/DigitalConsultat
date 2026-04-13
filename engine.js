@@ -151,6 +151,18 @@ function runModeA(input) {
   // Flow efficiency
   results.flow_efficiency = results.system_throughput_per_year / r.repairs_per_year;
 
+  // Labour KPIs
+  // average_labour_time_per_repair is not a direct user input — always derived from stage times
+  const avg_labour_time = r.average_preparation_time_per_repair + r.average_paint_time_per_repair;
+  // hours_sold: total billable labour hours based on actual output
+  results.hours_sold = results.actual_repairs_completed * avg_labour_time;
+  // productive_efficiency: sold hours as a fraction of attended (available) labour hours
+  results.productive_efficiency = results.hours_sold / results.labour_hours_available;
+  // productivity_ratio: sold hours as a fraction of total clock hours paid (incl. non-productive time)
+  results.productivity_ratio =
+    results.hours_sold /
+    ((r.preparation_workers + r.spray_painters) * r.fte_hours_per_year);
+
   // Consumption layer — requires user product data
   const canRunConsumption = r.user_product_usage_per_repair !== null &&
                             r.user_product_price_per_unit   !== null;
@@ -203,6 +215,21 @@ function runModeA(input) {
 
   results.savings_type = results.utilisation >= thresholds.savings_type_threshold
     ? 'Cost saving' : 'Capacity gain';
+
+    // Mode A savings range — conservative (1.1) to optimistic (1.3)
+const _ct  = r.current_cycle_time_per_repair;
+const _lf  = r.labour_fraction;
+const _vol = results.actual_repairs_completed;
+const _lc  = r.labour_cost_per_hour;
+
+results.savings_range = {
+  low:  Math.round((_ct - _ct / 1.1) * _lf * _vol * _lc),
+  mid:  Math.round((_ct - _ct / 1.2) * _lf * _vol * _lc),
+  high: Math.round((_ct - _ct / 1.3) * _lf * _vol * _lc),
+  factor_low:  1.1,
+  factor_high: 1.3,
+  note: 'Mode A estimate — range based on 10%–30% process improvement scenarios',
+};
 
   if (results.deviation_pct !== undefined) {
     results.consumption_scenario =
