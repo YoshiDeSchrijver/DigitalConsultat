@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPG Bodyshop Efficiency Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --bg:      #F0F4F8;
+  --white:   #FFFFFF;
+  --navy:    #0F2240;
+  --blue:    #0078A9;
+  --blue-d:  #005a82;
+  --red:     #E24B4A;
+  --amber:   #EF9F27;
+  --green:   #10B981;
+  --purple:  #7b3fa0;
+  --text:    #0F2240;
+  --muted:   #6B7280;
+  --subtle:  #9CA3AF;
+  --border:  #E5E7EB;
+  --radius:  8px;
+  --left-w:  28%;
+  --tab-h:   42px;
+  --strip-h: 38px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; overflow:hidden; }
+body { font-family:'Inter',system-ui,sans-serif; font-size:13px; background:var(--bg); color:var(--text); line-height:1.5; }
+
+/* ── APP SHELL ──────────────────────────────────── */
+#app { display:flex; height:100vh; overflow:hidden; }
+
+/* LEFT PANEL */
+#left {
+  width:var(--left-w); min-width:260px; max-width:380px;
+  background:var(--white); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; height:100vh;
+  overflow-y:auto; overflow-x:hidden; flex-shrink:0;
+}
+.left-header { padding:16px 20px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.ppg-logo { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.ppg-mark {
+  width:32px; height:32px; background:var(--blue); border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  color:white; font-weight:700; font-size:14px; flex-shrink:0;
+}
+.ppg-text { display:flex; flex-direction:column; line-height:1.2; }
+.ppg-name { font-size:11px; font-weight:700; color:var(--navy); letter-spacing:.02em; }
+.ppg-sub  { font-size:10px; color:var(--muted); }
+
+.role-toggle { display:flex; background:var(--bg); border-radius:6px; padding:3px; gap:2px; }
+.role-btn {
+  flex:1; padding:5px 8px; border:none; border-radius:4px;
+  font-size:11px; font-weight:600; cursor:pointer;
+  background:transparent; color:var(--muted); transition:all .15s; font-family:inherit;
+}
+.role-btn.active { background:var(--white); color:var(--blue); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+
+.left-body { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; }
+.left-tab-ctrl { flex-shrink:0; border-top:1px solid var(--border); padding:14px 20px; }
+
+/* ── FORM CONTROLS ──────────────────────────────── */
+.ctrl-section { margin-bottom:16px; }
+.ctrl-label { font-size:10px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; display:block; }
+.ctrl-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
+.ctrl-row-lbl { font-size:12px; color:var(--text); font-weight:500; flex:1; min-width:0; }
+.ctrl-row-sub { font-size:10px; color:var(--muted); display:block; }
+
+.stepper { display:flex; align-items:center; border:1px solid var(--border); border-radius:6px; overflow:hidden; flex-shrink:0; }
+.stp-btn {
+  width:26px; height:26px; border:none; background:var(--bg); color:var(--text);
+  cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center;
+  justify-content:center; font-family:inherit; transition:background .1s;
+}
+.stp-btn:hover { background:var(--border); }
+.stp-val {
+  min-width:34px; text-align:center; font-size:13px; font-weight:700; color:var(--text);
+  border:none; background:white; padding:0 4px; height:26px; line-height:26px; outline:none;
+}
+
+.slider-wrap { margin-bottom:14px; }
+.slider-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.slider-lbl  { font-size:12px; color:var(--text); font-weight:500; }
+.slider-val  { font-size:13px; font-weight:700; color:var(--blue); }
+input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:pointer; }
+.slider-green input[type="range"] { accent-color:var(--green); }
+.slider-green .slider-val { color:var(--green); }
+
+.adv-toggle {
+  display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600;
+  color:var(--muted); cursor:pointer; user-select:none; padding:6px 0;
+  border-top:1px solid var(--border); margin-top:4px;
+}
+.adv-toggle .chev { font-size:9px; transition:transform .2s; }
+.adv-toggle.open .chev { transform:rotate(90deg); }
+.adv-panel { display:none; padding-top:10px; }
+.adv-panel.open { display:block; }
+
+/* ── RIGHT PANEL ────────────────────────────────── */
+#right { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--bg); min-width:0; }
+
+/* TAB BAR */
+#tab-bar {
+  height:var(--tab-h); background:var(--white); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 20px; gap:2px; flex-shrink:0;
+}
+.tab-pill {
+  padding:5px 14px; border-radius:6px; border:none; background:transparent;
+  color:var(--muted); font-size:12px; font-weight:600; cursor:pointer;
+  font-family:inherit; transition:all .15s; white-space:nowrap;
+}
+.tab-pill:hover { background:var(--bg); color:var(--text); }
+.tab-pill.active { background:var(--blue); color:white; }
+.tab-spacer { flex:1; }
+.export-btn {
+  padding:5px 14px; border-radius:6px; border:1px solid var(--border);
+  background:white; color:var(--text); font-size:12px; font-weight:600;
+  cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.export-btn:hover { background:var(--navy); color:white; border-color:var(--navy); }
+.avatar {
+  width:28px; height:28px; border-radius:50%; background:var(--navy); color:white;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; margin-left:10px; flex-shrink:0;
+}
+
+/* CONTENT */
+#content { flex:1; overflow-y:auto; overflow-x:hidden; padding:18px 22px; min-height:0; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* BOTTOM STRIP */
+#bottom-strip {
+  height:var(--strip-h); background:var(--navy); display:flex; align-items:center;
+  padding:0 20px; flex-shrink:0; overflow:hidden;
+}
+.strip-item { display:flex; align-items:center; gap:8px; padding:0 14px; border-right:1px solid rgba(255,255,255,.1); flex:1; min-width:0; }
+.strip-item:first-child { padding-left:0; }
+.strip-item:last-child  { border-right:none; }
+.strip-lbl { font-size:9px; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; flex-shrink:0; }
+.strip-val { font-size:13px; font-weight:700; color:rgba(255,255,255,.9); white-space:nowrap; }
+.strip-val.green  { color:var(--green); }
+.strip-val.amber  { color:var(--amber); }
+.strip-val.red    { color:var(--red); }
+.strip-val.dimmed { color:rgba(255,255,255,.3); font-weight:400; font-style:italic; }
+
+/* ── KPI CARDS ──────────────────────────────────── */
+.kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.kpi-strip-3 { grid-template-columns:repeat(3,1fr); }
+
+.kc {
+  background:var(--white); border-radius:var(--radius);
+  border:0.5px solid var(--border); border-top:2px solid var(--blue); padding:12px 14px;
+}
+.kc.red    { border-top-color:var(--red); }
+.kc.amber  { border-top-color:var(--amber); }
+.kc.green  { border-top-color:var(--green); }
+.kc.navy   { background:var(--navy); border-top-color:transparent; }
+.kc.navy .kc-lbl,.kc.navy .kc-unit { color:rgba(255,255,255,.5); }
+.kc.navy .kc-val { color:white; }
+.kc-lbl  { font-size:10px; font-weight:600; color:var(--subtle); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.kc-val  { font-size:22px; font-weight:700; color:var(--text); line-height:1.1; margin-bottom:2px; }
+.kc-val.red   { color:var(--red); }
+.kc-val.green { color:var(--green); }
+.kc-unit { font-size:10px; color:var(--subtle); }
+
+.pill {
+  display:inline-flex; align-items:center; padding:2px 7px;
+  border-radius:999px; font-size:10px; font-weight:600; margin-top:4px;
+}
+.pill-green  { background:#D1FAE5; color:#065F46; }
+.pill-amber  { background:#FAEEDA; color:#854F0B; }
+.pill-red    { background:#FCEBEB; color:#A32D2D; }
+.pill-blue   { background:#E0F2FE; color:#0369A1; }
+.pill-gray   { background:#F3F4F6; color:#374151; }
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.card { background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border); padding:16px 18px; margin-bottom:10px; }
+.card-title { font-size:12px; font-weight:700; color:var(--text); margin-bottom:12px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+
+.insight {
+  background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border);
+  border-left:3px solid var(--red); padding:13px 16px; margin-bottom:10px;
+}
+.insight.amber { border-left-color:var(--amber); }
+.insight.green { border-left-color:var(--green); }
+.insight-lbl  { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:4px; }
+.insight-text { font-size:12px; color:var(--text); line-height:1.6; }
+
+/* ── BAR CHART ──────────────────────────────────── */
+.bar-list { display:flex; flex-direction:column; gap:8px; }
+.bar-row  { display:grid; grid-template-columns:90px 1fr 64px; gap:8px; align-items:center; }
+.bar-row-lbl { font-size:11px; color:var(--text); font-weight:500; text-align:right; }
+.bar-track { height:10px; background:var(--bg); border-radius:3px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:3px; transition:width .4s ease; }
+.bar-num   { font-size:11px; font-weight:600; color:var(--text); }
+
+.card-hr { border:none; border-top:1px solid var(--border); margin:12px 0; }
+
+.ratio-bar { height:10px; border-radius:3px; overflow:hidden; display:flex; margin:8px 0; }
+.rb-1 { background:var(--blue); transition:width .4s; }
+.rb-2 { background:var(--amber); flex:1; }
+
+.stat-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
+.stat-row:last-child { border-bottom:none; }
+.stat-lbl { font-size:11px; color:var(--muted); }
+.stat-val { font-size:12px; font-weight:600; color:var(--text); }
+
+/* ── SOLUTION TAB ───────────────────────────────── */
+.sim-sec-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+.sim-sec-lbl.before { color:var(--red); }
+.sim-sec-lbl.after  { color:var(--green); }
+.sim-pill {
+  display:block; text-align:center; margin:10px 0;
+  font-size:10px; font-weight:600; color:var(--muted);
+  background:var(--bg); border-radius:999px; padding:3px 0; width:100%;
+}
+.sim-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+.leg-item   { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--muted); }
+.leg-dot    { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+.summ-box { background:var(--bg); border-radius:6px; padding:12px 14px; margin-bottom:10px; }
+.summ-row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.summ-row:last-child { border-bottom:none; }
+.summ-lbl { color:var(--muted); }
+.summ-val { font-weight:600; color:var(--text); }
+.summ-val.green { color:var(--green); }
+
+.outcome-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
+.oc-cell      { text-align:center; background:var(--bg); border-radius:6px; padding:8px; }
+.oc-val       { font-size:16px; font-weight:700; color:var(--text); line-height:1; }
+.oc-val.green { color:var(--green); }
+.oc-lbl       { font-size:9px; color:var(--muted); margin-top:2px; }
+
+/* ── PRODUCTS TAB ───────────────────────────────── */
+.ctx-bar { background:var(--navy); color:rgba(255,255,255,.8); font-size:11px; padding:8px 16px; border-radius:var(--radius); margin-bottom:12px; line-height:1.5; }
+
+.step-row {
+  background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border);
+  border-left:3px solid var(--border); margin-bottom:6px; overflow:hidden;
+}
+.step-row.high-cost { border-left-color:var(--red); }
+.step-row.amb-cost  { border-left-color:var(--amber); }
+
+.step-hdr { display:flex; align-items:center; padding:10px 14px; gap:10px; }
+.step-num { font-size:10px; font-weight:700; color:var(--subtle); width:16px; flex-shrink:0; }
+.step-info { flex:1; min-width:0; }
+.step-name { font-size:12px; font-weight:600; color:var(--text); }
+.step-sub  { font-size:10px; color:var(--muted); margin-top:1px; }
+.step-cost { font-size:12px; font-weight:600; color:var(--text); white-space:nowrap; margin-right:8px; }
+.step-dimmed .step-name,.step-dimmed .step-cost { opacity:.5; }
+
+/* Toggle switch */
+.tog { position:relative; width:34px; height:18px; flex-shrink:0; }
+.tog input { opacity:0; width:0; height:0; position:absolute; }
+.tog-track {
+  position:absolute; inset:0; background:var(--border);
+  border-radius:9px; cursor:pointer; transition:background .2s;
+}
+.tog-track::after {
+  content:''; position:absolute; width:14px; height:14px;
+  background:white; border-radius:50%; top:2px; left:2px; transition:transform .2s;
+}
+.tog input:checked + .tog-track { background:var(--blue); }
+.tog input:checked + .tog-track::after { transform:translateX(16px); }
+.tog input:disabled + .tog-track { opacity:.4; cursor:not-allowed; }
+
+.step-expanded { border-top:1px solid var(--border); padding:12px 14px; background:#FAFAFA; }
+.prod-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.prod-card { background:var(--white); border:0.5px solid var(--border); border-radius:6px; padding:8px 10px; }
+.prod-name  { font-size:11px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.prod-brand { font-size:10px; color:var(--muted); }
+.impact-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* ── EXPORT TAB ─────────────────────────────────── */
+.exp-hero {
+  background:var(--navy); border-radius:var(--radius); padding:20px;
+  margin-bottom:14px; display:grid; grid-template-columns:1fr 1fr; gap:16px;
+}
+.exp-hero-item .eh-lbl { font-size:10px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+.exp-hero-item .eh-val { font-size:22px; font-weight:700; color:white; }
+.cta-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.cta-card {
+  background:var(--white); border:0.5px solid var(--border); border-radius:var(--radius);
+  padding:16px; text-align:center; cursor:pointer; transition:all .15s;
+}
+.cta-card.primary { background:var(--blue); border-color:var(--blue); }
+.cta-card.primary .cta-lbl { color:white; }
+.cta-card.primary .cta-sub { color:rgba(255,255,255,.7); }
+.cta-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+.cta-ico { font-size:20px; margin-bottom:6px; }
+.cta-lbl { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.cta-sub { font-size:11px; color:var(--muted); }
+
+/* ── LEFT: TAB-SPECIFIC ─────────────────────────── */
+.imp-box { background:#F0FDF4; border:1px solid #D1FAE5; border-radius:6px; padding:12px; }
+.imp-box-title { font-size:11px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.imp-box-note  { font-size:10px; color:var(--muted); margin-top:6px; line-height:1.4; }
+
+.spend-title { font-size:11px; font-weight:700; color:var(--text); margin-bottom:8px; }
+.spend-row  { display:flex; gap:8px; margin-bottom:6px; }
+.spend-field { flex:1; }
+.spend-field label { display:block; font-size:9px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+.spend-input { width:100%; padding:5px 8px; border:1px solid var(--border); border-radius:4px; font-size:12px; font-family:inherit; color:var(--text); outline:none; background:white; }
+.spend-input:focus { border-color:var(--blue); }
+.spend-note { font-size:10px; color:var(--muted); margin-bottom:8px; line-height:1.4; }
+
+.preview-box { background:var(--white); border:0.5px solid var(--border); border-radius:6px; padding:8px 10px; }
+.prev-row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:11px; }
+.prev-lbl { color:var(--muted); }
+.prev-val { font-weight:600; color:var(--text); }
+.prev-val.green { color:var(--green); }
+
+/* ── LABOUR KPI CARDS (left border) ─────────────── */
+.kpi-lbc { background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border); border-left:3px solid var(--blue); padding:12px 14px; }
+.kpi-lbc.amber { border-left-color:var(--amber); }
+.kpi-lbc.red   { border-left-color:var(--red); }
+
+/* ── ALERT BOX ──────────────────────────────────── */
+.alert-box { background:#FCEBEB; border:1px solid var(--red); border-radius:6px; padding:9px 12px; margin-top:10px; font-size:11px; color:#A32D2D; font-weight:500; }
+
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════ LEFT PANEL ═══════════════ -->
+<aside id="left">
+  <div class="left-header">
+    <div class="ppg-logo">
+      <div class="ppg-mark">PPG</div>
+      <div class="ppg-text">
+        <span class="ppg-name">PPG Industries</span>
+        <span class="ppg-sub">Bodyshop Efficiency Tool</span>
+      </div>
+    </div>
+    <div class="role-toggle">
+      <button class="role-btn active" id="btn-rep"   onclick="setRole('rep')">Sales Rep</button>
+      <button class="role-btn"        id="btn-owner" onclick="setRole('owner')">Owner</button>
+    </div>
+  </div>
+
+  <div class="left-body" id="left-body">
+    <!-- Repairs slider -->
+    <div class="ctrl-section">
+      <div class="slider-wrap">
+        <div class="slider-head">
+          <span class="slider-lbl">Repairs per year</span>
+          <span class="slider-val" id="disp-repairs">1,200</span>
+        </div>
+        <input type="range" id="repairs_per_year" min="200" max="4000" step="50" value="1200"
+          oninput="syncSlider('repairs_per_year','disp-repairs',v=>Math.round(v).toLocaleString())"
+          onchange="debouncedCalc()">
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin-bottom:14px;"></div>
+
+    <span class="ctrl-label">Workshop Setup</span>
+
+    <div class="ctrl-row">
+      <div class="ctrl-row-lbl">Prep workers</div>
+      <div class="stepper">
+        <button class="stp-btn" onclick="stepInt('preparation_workers',-1)">−</button>
+        <input class="stp-val" id="preparation_workers" type="number" value="2" min="1" max="20" onchange="debouncedCalc()">
+        <button class="stp-btn" onclick="stepInt('preparation_workers',1)">+</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-row-lbl">Spray painters</div>
+      <div class="stepper">
+        <button class="stp-btn" onclick="stepInt('spray_painters',-1)">−</button>
+        <input class="stp-val" id="spray_painters" type="number" value="2" min="1" max="20" onchange="debouncedCalc()">
+        <button class="stp-btn" onclick="stepInt('spray_painters',1)">+</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-row-lbl">Spray booths</div>
+      <div class="stepper">
+        <button class="stp-btn" onclick="stepInt('amount_spraybooths',-1)">−</button>
+        <input class="stp-val" id="amount_spraybooths" type="number" value="1" min="1" max="10" onchange="debouncedCalc()">
+        <button class="stp-btn" onclick="stepInt('amount_spraybooths',1)">+</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-row-lbl">
+        Labour rate
+        <span class="ctrl-row-sub">€ per hour</span>
+      </div>
+      <div class="stepper">
+        <button class="stp-btn" onclick="stepInt('labour_cost_per_hour',-5)">−</button>
+        <input class="stp-val" id="labour_cost_per_hour" type="number" value="45" min="15" max="120" style="min-width:40px" onchange="debouncedCalc()">
+        <button class="stp-btn" onclick="stepInt('labour_cost_per_hour',5)">+</button>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">
+      <span class="chev">▶</span>
+      <span>Advanced settings</span>
+    </div>
+    <div class="adv-panel" id="adv-panel">
+      <div class="ctrl-row">
+        <div class="ctrl-row-lbl">Prep time / repair<span class="ctrl-row-sub">hours</span></div>
+        <div class="stepper">
+          <button class="stp-btn" onclick="stepFlt('average_preparation_time_per_repair',-0.5)">−</button>
+          <input class="stp-val" id="average_preparation_time_per_repair" type="number" value="3.0" min="0.5" max="10" step="0.5" style="min-width:38px" onchange="debouncedCalc()">
+          <button class="stp-btn" onclick="stepFlt('average_preparation_time_per_repair',0.5)">+</button>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-row-lbl">Paint time / repair<span class="ctrl-row-sub">hours</span></div>
+        <div class="stepper">
+          <button class="stp-btn" onclick="stepFlt('average_paint_time_per_repair',-0.5)">−</button>
+          <input class="stp-val" id="average_paint_time_per_repair" type="number" value="2.5" min="0.5" max="10" step="0.5" style="min-width:38px" onchange="debouncedCalc()">
+          <button class="stp-btn" onclick="stepFlt('average_paint_time_per_repair',0.5)">+</button>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-row-lbl">Booth cycle / repair<span class="ctrl-row-sub">hours</span></div>
+        <div class="stepper">
+          <button class="stp-btn" onclick="stepFlt('average_booth_cycle_time_per_repair',-0.5)">−</button>
+          <input class="stp-val" id="average_booth_cycle_time_per_repair" type="number" value="2.0" min="0.5" max="8" step="0.5" style="min-width:38px" onchange="debouncedCalc()">
+          <button class="stp-btn" onclick="stepFlt('average_booth_cycle_time_per_repair',0.5)">+</button>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-row-lbl">Working days / yr</div>
+        <div class="stepper">
+          <button class="stp-btn" onclick="stepInt('working_days_per_year',-5)">−</button>
+          <input class="stp-val" id="working_days_per_year" type="number" value="240" min="100" max="300" style="min-width:40px" onchange="debouncedCalc()">
+          <button class="stp-btn" onclick="stepInt('working_days_per_year',5)">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab-specific controls, shown/hidden per active tab -->
+  <div class="left-tab-ctrl" id="left-tab-ctrl" style="display:none;"></div>
+</aside>
+
+<!-- ═══════════════ RIGHT PANEL ══════════════ -->
+<main id="right">
+
+  <!-- TAB BAR -->
+  <nav id="tab-bar">
+    <button class="tab-pill active" onclick="switchTab(0)">Diagnosis</button>
+    <button class="tab-pill"        onclick="switchTab(1)">Impact</button>
+    <button class="tab-pill"        onclick="switchTab(2)">Solution</button>
+    <button class="tab-pill"        onclick="switchTab(3)">Products</button>
+    <button class="tab-pill"        onclick="switchTab(4)">Export</button>
+    <div class="tab-spacer"></div>
+    <button class="export-btn" onclick="switchTab(4)">Export PDF</button>
+    <div class="avatar">YS</div>
+  </nav>
+
+  <!-- CONTENT AREA -->
+  <div id="content">
+
+    <!-- ═══ TAB 1: DIAGNOSIS ════════════════════ -->
+    <section class="tab-panel active" id="panel-0">
+      <div class="kpi-strip">
+        <div class="kc red">
+          <div class="kc-lbl">Bottleneck</div>
+          <div class="kc-val red" id="d-bn">Booth</div>
+          <div class="kc-unit" id="d-bn-util">125.0% utilisation</div>
+        </div>
+        <div class="kc amber">
+          <div class="kc-lbl">Labour utilisation</div>
+          <div class="kc-val" id="d-util">101.1%</div>
+          <div><span class="pill pill-red" id="d-util-tag">Overloaded</span></div>
+        </div>
+        <div class="kc">
+          <div class="kc-lbl">Flow efficiency</div>
+          <div class="kc-val" id="d-flow">80.0%</div>
+          <div><span class="pill pill-amber" id="d-flow-tag">Constrained</span></div>
+        </div>
+        <div class="kc navy">
+          <div class="kc-lbl">Capacity gap</div>
+          <div class="kc-val" id="d-gap">−240</div>
+          <div class="kc-unit">repairs/yr</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Stage capacity vs demand</div>
+          <div class="bar-list" id="d-stage-bars"></div>
+          <div class="alert-box" id="d-alert">Booth limits the system — 240 repairs/yr lost</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Workload distribution</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <span style="font-size:20px;font-weight:700;" id="wd-prep-pct">54.5%</span>
+            <span style="font-size:20px;font-weight:700;color:var(--purple);" id="wd-paint-pct">45.5%</span>
+          </div>
+          <div style="display:flex;font-size:10px;color:var(--muted);margin-bottom:8px;">
+            <span>Prep</span><span style="flex:1"></span><span>Paint</span>
+          </div>
+          <div class="ratio-bar">
+            <div class="rb-1" id="wd-prep-bar" style="width:54.5%"></div>
+            <div class="rb-2"></div>
+          </div>
+          <hr class="card-hr">
+          <div class="stat-row"><span class="stat-lbl">Repairs / worker / day</span><span class="stat-val" id="wd-rpw">1.00</span></div>
+          <div class="stat-row"><span class="stat-lbl">Repairs / booth / day</span><span class="stat-val" id="wd-rpb">4.00</span></div>
+          <div class="stat-row"><span class="stat-lbl">System throughput</span><span class="stat-val" id="wd-tp">960/yr</span></div>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="insight-lbl">Diagnosis</div>
+        <div class="insight-text" id="d-insight">
+          <span id="d-ins-bn">Booth</span> is the binding constraint — <strong id="d-ins-gap">240</strong> repairs/yr lost.
+          At <strong id="d-ins-butil">125.0%</strong> utilisation there is zero buffer. Improving prep or painting first delivers zero throughput gain.
+          At <strong id="d-ins-cpr">€269.35</strong> total cost per repair, these <strong id="d-ins-gap2">240</strong> lost repairs represent significant unrealised revenue.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TAB 2: IMPACT ═══════════════════════ -->
+    <section class="tab-panel" id="panel-1">
+      <div class="kpi-strip">
+        <div class="kc navy">
+          <div class="kc-lbl">Total cost / repair</div>
+          <div class="kc-val" id="i-total-cpr">€269.35</div>
+          <div class="kc-unit">labour + materials</div>
+        </div>
+        <div class="kc amber">
+          <div class="kc-lbl">Labour cost / repair</div>
+          <div class="kc-val" id="i-lab-cpr">€247.50</div>
+          <div class="kc-unit"><span id="i-lab-pct">91.9%</span> of total</div>
+        </div>
+        <div class="kc">
+          <div class="kc-lbl">EMM cost / repair</div>
+          <div class="kc-val" id="i-emm-cpr">€21.85</div>
+          <div class="kc-unit"><span id="i-emm-pct">8.1%</span> of total</div>
+        </div>
+        <div class="kc">
+          <div class="kc-lbl">Annual EMM spend</div>
+          <div class="kc-val" id="i-emm-ann">€20,976</div>
+          <div class="kc-unit" id="i-emm-ann-sub">at 960 repairs</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Labour vs materials split</div>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+            <div>
+              <div style="font-size:26px;font-weight:700;" id="i-lab-big">€247.50</div>
+              <div style="font-size:10px;color:var(--muted);">Labour / repair</div>
+            </div>
+            <div style="color:var(--border);font-size:18px;">vs</div>
+            <div>
+              <div style="font-size:20px;font-weight:700;color:var(--amber);" id="i-emm-big">€21.85</div>
+              <div style="font-size:10px;color:var(--muted);">EMM / repair</div>
+            </div>
+          </div>
+          <div class="ratio-bar">
+            <div class="rb-1" id="i-split-bar" style="width:91.9%"></div>
+            <div class="rb-2"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
+            <strong id="i-lab-note">€247.50</strong> of <strong id="i-total-note">€269.35</strong> is labour — reducing time per repair is the single biggest lever
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Non-paint spend by system</div>
+          <div class="bar-list" id="i-sys-bars"></div>
+          <hr class="card-hr">
+          <div class="stat-row"><span class="stat-lbl" style="font-weight:700;">Total</span><span class="stat-val">€21.85</span></div>
+        </div>
+      </div>
+
+      <!-- Labour KPIs — rep view only -->
+      <div id="i-labour-kpis" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="kpi-lbc">
+          <div class="kc-lbl">Hours sold / yr</div>
+          <div class="kc-val" id="i-hrs-sold" style="font-size:18px;">5,280</div>
+          <div class="kc-unit" id="i-hrs-sub">960 × 5.5h</div>
+        </div>
+        <div class="kpi-lbc amber">
+          <div class="kc-lbl">Productive efficiency</div>
+          <div class="kc-val" id="i-prod-eff" style="font-size:18px;">80.9%</div>
+          <div class="kc-unit">Target: 105–110%</div>
+        </div>
+        <div class="kpi-lbc red">
+          <div class="kc-lbl">Productivity ratio</div>
+          <div class="kc-val" id="i-prod-ratio" style="font-size:18px;">73.3%</div>
+          <div class="kc-unit">Target: 120–130%</div>
+        </div>
+      </div>
+
+      <div class="insight amber">
+        <div class="insight-lbl">Impact Analysis</div>
+        <div class="insight-text">
+          Labour dominates at <strong id="i-ins-labpct">91.9%</strong> — and is underperforming on every KPI the bodyshop manager tracks.
+          Sanding accounts for 39.8% of non-paint spend — the single biggest material lever. The Solution tab shows what a 20% improvement delivers.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TAB 3: SOLUTION ══════════════════════ -->
+    <section class="tab-panel" id="panel-2">
+      <div class="kpi-strip">
+        <div class="kc navy">
+          <div class="kc-lbl">Annual savings</div>
+          <div class="kc-val" id="s-savings">€44,880</div>
+          <div class="kc-unit">estimated</div>
+        </div>
+        <div class="kc green">
+          <div class="kc-lbl">Throughput gain</div>
+          <div class="kc-val green" id="s-tp-gain">+128</div>
+          <div class="kc-unit" id="s-tp-gain-pct">+13.3% output</div>
+        </div>
+        <div class="kc">
+          <div class="kc-lbl">New throughput</div>
+          <div class="kc-val" id="s-new-tp">1,088</div>
+          <div class="kc-unit">repairs/yr</div>
+        </div>
+        <div class="kc amber">
+          <div class="kc-lbl">Next bottleneck</div>
+          <div class="kc-val" id="s-next-bn" style="font-size:16px;">Preparation</div>
+          <div class="kc-unit">constraint shifts</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Constraint shift simulation</div>
+          <div class="sim-sec-lbl before">Before</div>
+          <div class="bar-list" id="s-bars-before"></div>
+          <span class="sim-pill" id="s-pill">After <span id="s-pill-pct">20%</span> improvement on Booth</span>
+          <div class="sim-sec-lbl after">After</div>
+          <div class="bar-list" id="s-bars-after"></div>
+          <div class="sim-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Previous bottleneck</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Resolved</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>New bottleneck</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Savings summary</div>
+          <div class="summ-box">
+            <div class="summ-row"><span class="summ-lbl">Annual savings</span><span class="summ-val green" id="ss-savings">€44,880</span></div>
+            <div class="summ-row"><span class="summ-lbl">Repairs gained</span><span class="summ-val" id="ss-gained">+128</span></div>
+            <div class="summ-row"><span class="summ-lbl">Savings type</span><span class="summ-val" id="ss-type">Cost saving</span></div>
+            <div class="summ-row"><span class="summ-lbl">Improvement</span><span class="summ-val" id="ss-imp">20% on Booth</span></div>
+            <div class="summ-row"><span class="summ-lbl">Labour / repair</span><span class="summ-val" id="ss-lab">€247.50</span></div>
+            <div class="summ-row"><span class="summ-lbl">EMM / repair</span><span class="summ-val">€21.85</span></div>
+          </div>
+          <div style="background:var(--bg);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--muted);margin-bottom:10px;">
+            Enter client spend in Products tab for precise saving calculation
+          </div>
+          <div class="outcome-grid">
+            <div class="oc-cell"><div class="oc-val" id="oc-before">960</div><div class="oc-lbl">Before</div></div>
+            <div class="oc-cell"><div class="oc-val green" id="oc-after">1,088</div><div class="oc-lbl">After</div></div>
+            <div class="oc-cell"><div class="oc-val green" id="oc-gain">+128</div><div class="oc-lbl">Gained</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight green">
+        <div class="insight-lbl">Solution</div>
+        <div class="insight-text">
+          A <strong id="s-ins-pct">20%</strong> improvement on the booth delivers <strong id="s-ins-gain">128</strong> additional repairs/year — no extra staff needed.
+          Throughput: <strong id="s-ins-before">960</strong> → <strong id="s-ins-after">1,088</strong>/yr. Constraint shifts to Preparation.
+          Enter client spend in Products to calculate exact material saving.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TAB 4: PRODUCTS ══════════════════════ -->
+    <section class="tab-panel" id="panel-3">
+      <div class="ctx-bar">
+        Toggle ON where client switches to EMM products &nbsp;·&nbsp; Steps 4+5 drive throughput &nbsp;·&nbsp; All toggled steps show cost saving when spend is entered
+      </div>
+      <div id="prod-list"></div>
+    </section>
+
+    <!-- ═══ TAB 5: EXPORT ════════════════════════ -->
+    <section class="tab-panel" id="panel-4">
+      <div class="exp-hero">
+        <div class="exp-hero-item"><div class="eh-lbl">Annual savings</div><div class="eh-val" id="e-savings">€44,880</div></div>
+        <div class="exp-hero-item"><div class="eh-lbl">Repairs gained</div><div class="eh-val" id="e-gain">+128</div></div>
+        <div class="exp-hero-item"><div class="eh-lbl">Booth utilisation</div><div class="eh-val" id="e-booth">125.0%</div></div>
+        <div class="exp-hero-item"><div class="eh-lbl">Cost per repair</div><div class="eh-val" id="e-cpr">€269.35</div></div>
+      </div>
+
+      <div class="two-col" style="margin-bottom:14px;">
+        <div class="card">
+          <div class="card-title">Full analysis summary</div>
+          <div id="e-kpi-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Non-paint cost by step</div>
+          <div class="bar-list" id="e-np-bars"></div>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <div class="cta-card primary">
+          <div class="cta-ico">↓</div>
+          <div class="cta-lbl">Download PDF</div>
+          <div class="cta-sub">Full analysis report</div>
+        </div>
+        <div class="cta-card">
+          <div class="cta-ico">✉</div>
+          <div class="cta-lbl">Send by email</div>
+          <div class="cta-sub">Share with your contact</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Suggested next steps</div>
+        <ol style="padding-left:18px;display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+          <li style="font-size:12px;color:var(--text);">Book a product demonstration to validate the 30% time saving claim on Steps 4+5 <span class="pill pill-blue" style="margin-left:6px;">Demo</span></li>
+          <li style="font-size:12px;color:var(--text);">Collect client's current non-paint spend per step for a precise material saving calculation <span class="pill pill-amber" style="margin-left:6px;">Data</span></li>
+          <li style="font-size:12px;color:var(--text);">Agree a pilot scope — typically 4–6 weeks on Steps 4 and 5 only <span class="pill pill-gray" style="margin-left:6px;">Pilot</span></li>
+          <li style="font-size:12px;color:var(--text);">Set a review date with the bodyshop owner to measure results against this baseline <span class="pill pill-green" style="margin-left:6px;">Review</span></li>
+        </ol>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM STRIP -->
+  <div id="bottom-strip">
+    <div class="strip-item">
+      <span class="strip-lbl">Throughput gain</span>
+      <span class="strip-val green" id="bs-tp-gain">+128</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">Cost saving</span>
+      <span class="strip-val dimmed" id="bs-cost-saving">Enter spend</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">Bottleneck</span>
+      <span class="strip-val" id="bs-bn">Booth</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">Savings potential</span>
+      <span class="strip-val" id="bs-savings">€44,880</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">Cost per repair</span>
+      <span class="strip-val" id="bs-cpr">€269.35</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">Saving calc.</span>
+      <span class="strip-val dimmed" id="bs-calc">Estimated</span>
+    </div>
+  </div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════ */
+const EMM_COST = 21.85;
+
+const EMM_SYSTEMS = [
+  { name:'Sanding',      cost:8.694, color:'#0078A9' },
+  { name:'Masking',      cost:6.396, color:'#7b3fa0' },
+  { name:'Paint Prep',   cost:3.900, color:'#00bcd4' },
+  { name:'Protection',   cost:1.375, color:'#EF9F27' },
+  { name:'Polishing',    cost:0.610, color:'#10B981' },
+  { name:'Booth Maint.', cost:0.877, color:'#6B7280' },
+];
+
+const STEP4_PRODS = [
+  { name:'Finixa SPDI',           brand:'PPG / Finixa' },
+  { name:'Finixa PPAS',           brand:'PPG / Finixa' },
+  { name:'Manual sanding/sponges',brand:'Various'      },
+  { name:'Non-Woven Wipes',       brand:'PPG'          },
+];
+
+const STEPS = [
+  { id:1, name:'Inspection',          sub:'',                                       cost:null, disabled:true  },
+  { id:2, name:'Cleaning',            sub:'',                                       cost:null, disabled:true  },
+  { id:3, name:'Disassembly',         sub:'Surface Prep · PPE',                     cost:0.54, disabled:false },
+  { id:4, name:'Panel/Plastic Repair',sub:'Sanding · PPAS · Non-Woven · PPE',      cost:5.62, disabled:false, highCost:true  },
+  { id:5, name:'Preparation Zone',    sub:'Sanding · UV Curing · Masking · PPE',    cost:6.50, disabled:false, highCost:true, pendingTag:true },
+  { id:6, name:'Paint Application',   sub:'Paint · Hardener · Thinner',             cost:4.88, disabled:false, ambCost:true  },
+  { id:7, name:'Paint Correction',    sub:'Polishing · Compounds',                  cost:1.22, disabled:false, ambCost:true  },
+  { id:8, name:'Assembly & Cleaning', sub:'Cleaning agents · PPE',                  cost:0.74, disabled:false },
+  { id:9, name:'Supporting Processes',sub:'SprayBooth Maintenance · Mixing Room',   cost:0.73, disabled:false },
+];
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+const S = {
+  base:    null,
+  improved:null,
+  impFactor: 1.2,
+  toggles: { 3:false, 4:true, 5:true, 6:false, 7:false, 8:false, 9:false },
+  clientMonthly: '',
+  clientAnnual:  '',
+  role:      'rep',
+  activeTab: 0,
+};
+
+/* ═══════════════════════════════════════════════
+   INPUT HELPERS
+═══════════════════════════════════════════════ */
+function gn(id, fb) {
+  const el = document.getElementById(id);
+  if (!el) return fb ?? undefined;
+  const v = parseFloat(el.value);
+  return isNaN(v) ? (fb ?? undefined) : v;
+}
+
+function getInputs() {
+  const wd  = gn('working_days_per_year', 240);
+  const hpd = 8, lef = 0.85;
+  return {
+    repairs_per_year:                    gn('repairs_per_year', 1200),
+    preparation_workers:                 gn('preparation_workers', 2),
+    spray_painters:                      gn('spray_painters', 2),
+    amount_spraybooths:                  gn('amount_spraybooths', 1),
+    labour_cost_per_hour:                gn('labour_cost_per_hour', 45),
+    working_days_per_year:               wd,
+    labour_available_hours:              wd * hpd * lef,
+    booth_available_hours:               wd * hpd,
+    fte_hours_per_year:                  1800,
+    average_preparation_time_per_repair: gn('average_preparation_time_per_repair', 3.0),
+    average_paint_time_per_repair:       gn('average_paint_time_per_repair', 2.5),
+    average_booth_cycle_time_per_repair: gn('average_booth_cycle_time_per_repair', 2.0),
+  };
+}
+
+function stepInt(id, d) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = Math.min(+el.max||9999, Math.max(+el.min||0, (parseInt(el.value)||0) + d));
+  el.dispatchEvent(new Event('change'));
+}
+
+function stepFlt(id, d) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = Math.min(+el.max||9999, Math.max(+el.min||0, (parseFloat(el.value)||0) + d)).toFixed(1);
+  el.dispatchEvent(new Event('change'));
+}
+
+function syncSlider(id, dispId, fmt) {
+  const v = gn(id);
+  const el = document.getElementById(dispId);
+  if (el && v !== undefined) el.textContent = fmt ? fmt(v) : v;
+}
+
+function toggleAdv() {
+  document.getElementById('adv-toggle').classList.toggle('open');
+  document.getElementById('adv-panel').classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════
+   ROLE
+═══════════════════════════════════════════════ */
+function setRole(r) {
+  S.role = r;
+  document.getElementById('btn-rep').classList.toggle('active', r === 'rep');
+  document.getElementById('btn-owner').classList.toggle('active', r === 'owner');
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════ */
+function switchTab(idx) {
+  S.activeTab = idx;
+  document.querySelectorAll('.tab-pill').forEach((el,i) => el.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-panel').forEach((el,i) => el.classList.toggle('active', i === idx));
+  updateLeftCtrl();
+}
+
+function updateLeftCtrl() {
+  const el = document.getElementById('left-tab-ctrl');
+  if (S.activeTab === 2) {
+    el.style.display = 'block';
+    const pct = Math.round((S.impFactor - 1) * 100);
+    el.innerHTML = `
+      <div class="imp-box">
+        <div class="imp-box-title">Improvement factor — Booth</div>
+        <div class="slider-wrap slider-green" style="margin-top:8px;margin-bottom:0;">
+          <div class="slider-head">
+            <span class="slider-lbl">Improvement</span>
+            <span class="slider-val" id="disp-imp">${pct}%</span>
+          </div>
+          <input type="range" id="imp-slider" min="5" max="50" step="5" value="${pct}"
+            oninput="onImpSlider(this.value)">
+        </div>
+        <div class="imp-box-note">PPAS verified at 30% — adjust to match claim.</div>
+      </div>`;
+  } else if (S.activeTab === 3) {
+    el.style.display = 'block';
+    el.innerHTML = buildSpendPanel();
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function onImpSlider(val) {
+  const pct = parseInt(val);
+  S.impFactor = 1 + pct / 100;
+  const d = document.getElementById('disp-imp');
+  if (d) d.textContent = pct + '%';
+  calcImproved();
+}
+
+function buildSpendPanel() {
+  const m = S.clientMonthly || '';
+  const a = S.clientAnnual  || '';
+  return `
+    <div class="spend-title">Client's current spend</div>
+    <div class="spend-row">
+      <div class="spend-field"><label>Monthly (€)</label>
+        <input class="spend-input" id="sp-monthly" type="number" min="0" placeholder="0" value="${m}" oninput="onSpend('m')"></div>
+      <div class="spend-field"><label>Annual (€)</label>
+        <input class="spend-input" id="sp-annual" type="number" min="0" placeholder="0" value="${a}" oninput="onSpend('a')"></div>
+    </div>
+    <div class="spend-note">Quick entry distributes by step cost weight. Refine for exact saving per step.</div>
+    <div class="preview-box" id="spend-preview">${buildPreview()}</div>`;
+}
+
+function onSpend(field) {
+  if (field === 'm') {
+    const m = parseFloat(document.getElementById('sp-monthly')?.value) || 0;
+    S.clientMonthly = m;
+    S.clientAnnual  = Math.round(m * 12);
+    const ael = document.getElementById('sp-annual');
+    if (ael) ael.value = S.clientAnnual;
+  } else {
+    const a = parseFloat(document.getElementById('sp-annual')?.value) || 0;
+    S.clientAnnual  = a;
+    S.clientMonthly = +(a / 12).toFixed(0);
+    const mel = document.getElementById('sp-monthly');
+    if (mel) mel.value = S.clientMonthly;
+  }
+  const sp = document.getElementById('spend-preview');
+  if (sp) sp.innerHTML = buildPreview();
+  renderBottomStrip(derived());
+}
+
+function buildPreview() {
+  const d = derived();
+  const annual = parseFloat(S.clientAnnual) || 0;
+  const activeCount = STEPS.filter(s => !s.disabled && S.toggles[s.id]).length;
+  const costSaving = annual > 0 ? Math.round(annual * (EMM_COST / (annual / (d.baseActual || 960))) * d.baseActual) : null;
+  return `
+    <div class="prev-row"><span class="prev-lbl">Throughput gain</span><span class="prev-val green">${d.tpGain > 0 ? '+' + f0(d.tpGain) : '—'}</span></div>
+    <div class="prev-row"><span class="prev-lbl">Cost saving</span><span class="prev-val ${annual > 0 ? 'green' : ''}">${annual > 0 ? '€' + Math.round(annual - d.baseActual * EMM_COST).toLocaleString('nl-NL') : '—'}</span></div>
+    <div class="prev-row"><span class="prev-lbl">Steps using EMM</span><span class="prev-val">${activeCount}</span></div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   API CALLS
+═══════════════════════════════════════════════ */
+let _timer = null;
+function debouncedCalc() {
+  clearTimeout(_timer);
+  _timer = setTimeout(calculate, 300);
+}
+
+async function calculate() {
+  const inp = getInputs();
+  try {
+    const res  = await fetch('/api/calculate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(inp) });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    S.base = json.data;
+  } catch(e) { console.error('Base calc:', e); }
+  await calcImproved();
+}
+
+async function calcImproved() {
+  const inp = getInputs();
+  const step45 = S.toggles[4] || S.toggles[5];
+  const prepFac = step45 ? (1/0.7) : 1.0;
+
+  const payload = {
+    ...inp,
+    improvement_factor:               S.impFactor,
+    booth_improvement_factor:         S.impFactor,
+    prep_improvement_factor:          prepFac,
+    paint_improvement_factor:         1.0,
+    company_product_usage_per_repair: 1,
+    company_product_price_per_unit:   EMM_COST,
+    investment_cost:                  0,
+  };
+  try {
+    const res  = await fetch('/api/calculate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    S.improved = json.data;
+  } catch(e) { console.error('Improved calc:', e); }
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════
+   DERIVED VALUES
+═══════════════════════════════════════════════ */
+function derived() {
+  const inp = getInputs();
+  const r   = S.base?.results || {};
+
+  const prepT   = inp.average_preparation_time_per_repair;
+  const paintT  = inp.average_paint_time_per_repair;
+  const boothT  = inp.average_booth_cycle_time_per_repair;
+  const labRate = inp.labour_cost_per_hour;
+  const repairs = inp.repairs_per_year;
+  const prepW   = inp.preparation_workers;
+  const paintW  = inp.spray_painters;
+  const booths  = inp.amount_spraybooths;
+  const labAvail= inp.labour_available_hours;
+  const boothAv = inp.booth_available_hours;
+  const days    = inp.working_days_per_year;
+  const workers = prepW + paintW;
+
+  const labTime = prepT + paintT;
+  const cyclT   = labTime + boothT;
+  const labFrac = labTime / cyclT;
+  const labCPR  = labTime * labRate;
+  const totCPR  = labCPR + EMM_COST;
+
+  // Stage capacities
+  const prepCap  = prepW  * labAvail  / prepT;
+  const paintCap = paintW * labAvail  / paintT;
+  const boothCap = booths * boothAv   / boothT;
+  const baseTp   = Math.min(prepCap, paintCap, boothCap);
+  const baseActual = Math.min(repairs, baseTp);
+
+  // From API or compute locally
+  const util      = r.utilisation        ?? (repairs * labTime) / (workers * labAvail);
+  const boothUtil = r.booth_utilisation  ?? (repairs * boothT)  / (booths  * boothAv);
+  const flow      = r.flow_efficiency    ?? baseTp / repairs;
+  const capGap    = r.capacity_gap       ?? baseTp - repairs;
+  const bnList    = r.bottleneck_process ?? (() => {
+    const minCap = Math.min(prepCap, paintCap, boothCap);
+    const res = [];
+    if (prepCap  === minCap) res.push('Preparation');
+    if (paintCap === minCap) res.push('Painting');
+    if (boothCap === minCap) res.push('Booth');
+    return res;
+  })();
+  const bn = bnList.join(' + ');
+
+  const hoursSold  = r.hours_sold            ?? baseActual * labTime;
+  const prodEff    = r.productive_efficiency ?? hoursSold / (workers * labAvail);
+  const prodRatio  = r.productivity_ratio    ?? hoursSold / (workers * 1800);
+
+  // Improved (booth-only factor, plus optional prep factor for steps 4+5)
+  const factor    = S.impFactor;
+  const impPct    = Math.round((factor - 1) * 100);
+  const step45on  = S.toggles[4] || S.toggles[5];
+  const prepFac   = step45on ? (1/0.7) : 1.0;
+  const newBoothCap= booths * boothAv / (boothT / factor);
+  const newPrepCap = prepW  * labAvail / (prepT  / prepFac);
+  const newTp      = Math.min(newPrepCap, paintCap, newBoothCap);
+  const newActual  = Math.min(repairs, newTp);
+  const tpGain     = Math.max(0, Math.round(newTp - baseTp));
+
+  // Savings formula: (cycle_time − ct/factor) × labour_fraction × new_actual × labour_rate
+  const ctSaved   = cyclT - cyclT / factor;
+  const savings   = Math.round(ctSaved * labFrac * newActual * labRate);
+
+  // Next bottleneck after improvement
+  const minAfter = Math.min(newBoothCap, newPrepCap, paintCap);
+  const nextBnParts = [];
+  if (newBoothCap === minAfter) nextBnParts.push('Booth');
+  if (newPrepCap  === minAfter) nextBnParts.push('Preparation');
+  if (paintCap    === minAfter) nextBnParts.push('Painting');
+  const nextBn = nextBnParts.join(' + ');
+
+  // Workload distribution
+  const prepWork  = baseActual * prepT;
+  const paintWork = baseActual * paintT;
+  const totalWork = prepWork + paintWork;
+  const prepPct   = totalWork > 0 ? (prepWork / totalWork) * 100 : 54.5;
+  const paintPct  = 100 - prepPct;
+
+  return {
+    inp, labCPR, totCPR, labFrac,
+    util, boothUtil, flow, capGap, bn, bnList,
+    hoursSold, prodEff, prodRatio,
+    prepCap, paintCap, boothCap, baseTp, baseActual,
+    newPrepCap, newBoothCap, newTp, newActual, tpGain, savings,
+    nextBn, impPct, factor,
+    prepPct, paintPct, days, workers,
+    repairs, labRate, labTime,
+  };
+}
+
+/* ═══════════════════════════════════════════════
+   FORMATTERS
+═══════════════════════════════════════════════ */
+const f0  = v => Math.round(v).toLocaleString('nl-NL');
+const f1  = v => v.toFixed(1);
+const pct = v => (v * 100).toFixed(1) + '%';
+const eur = v => '€' + v.toFixed(2);
+const eurK= v => '€' + Math.round(v).toLocaleString('nl-NL');
+
+function utilPill(u) {
+  if (u > 1.0)  return { cls:'pill-red',   label:'Overloaded'    };
+  if (u > 0.9)  return { cls:'pill-amber', label:'Running hot'   };
+  if (u >= 0.7) return { cls:'pill-green', label:'Balanced'      };
+  return               { cls:'pill-gray',  label:'Underutilised' };
+}
+
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
+function setPill(id, p) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = p.label;
+  el.className   = 'pill ' + p.cls;
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════════════ */
+function renderAll() {
+  const d = derived();
+  renderDiagnosis(d);
+  renderImpact(d);
+  renderSolution(d);
+  renderProducts(d);
+  renderExport(d);
+  renderBottomStrip(d);
+}
+
+/* ── TAB 1: DIAGNOSIS ──────────────────────── */
+function renderDiagnosis(d) {
+  const { util, boothUtil, flow, capGap, bn,
+          prepCap, paintCap, boothCap, baseTp,
+          totCPR, prepPct, paintPct,
+          baseActual, days, workers, inp } = d;
+
+  const gapAbs = Math.abs(Math.round(capGap));
+
+  set('d-bn',      bn);
+  set('d-bn-util', pct(boothUtil) + ' utilisation');
+  set('d-util',    pct(util));
+  setPill('d-util-tag', utilPill(util));
+  set('d-flow', pct(flow));
+  const ftag = flow < 0.85 ? {cls:'pill-amber',label:'Constrained'} :
+               flow < 1.0  ? {cls:'pill-green', label:'Efficient'}   :
+                              {cls:'pill-green', label:'Optimal'};
+  setPill('d-flow-tag', ftag);
+  set('d-gap', capGap >= 0 ? '+' + f0(capGap) : '−' + gapAbs.toLocaleString('nl-NL'));
+
+  // Stage bars — normalize to max capacity
+  const maxCap = Math.max(prepCap, paintCap, boothCap, inp.repairs_per_year);
+  const stageBars = [
+    { label:'Prep',    val:prepCap,             color:'#0078A9' },
+    { label:'Painting',val:paintCap,            color:'#7b3fa0' },
+    { label:'Booth',   val:boothCap,            color:'#E24B4A', bold:true },
+    { label:'Demand',  val:inp.repairs_per_year, color:'#EF9F27', bold:true },
+  ];
+  document.getElementById('d-stage-bars').innerHTML = stageBars.map(b => `
+    <div class="bar-row">
+      <div class="bar-row-lbl">${b.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(b.val/maxCap*100)).toFixed(1)}%;background:${b.color};"></div></div>
+      <div class="bar-num" style="color:${b.color};font-weight:${b.bold?700:600}">${f0(b.val)}</div>
+    </div>`).join('');
+
+  set('d-alert', bn + ' limits the system — ' + gapAbs.toLocaleString('nl-NL') + ' repairs/yr lost');
+
+  // Workload
+  set('wd-prep-pct',  prepPct.toFixed(1) + '%');
+  set('wd-paint-pct', (100-prepPct).toFixed(1) + '%');
+  const pb = document.getElementById('wd-prep-bar');
+  if (pb) pb.style.width = prepPct.toFixed(1) + '%';
+  set('wd-rpw', (baseActual / inp.preparation_workers / days).toFixed(2));
+  set('wd-rpb', (baseActual / inp.amount_spraybooths  / days).toFixed(2));
+  set('wd-tp',  f0(baseTp) + '/yr');
+
+  // Insight
+  set('d-ins-bn',    bn);
+  set('d-ins-gap',   gapAbs.toLocaleString('nl-NL'));
+  set('d-ins-butil', pct(boothUtil));
+  set('d-ins-cpr',   eur(totCPR));
+  set('d-ins-gap2',  gapAbs.toLocaleString('nl-NL'));
+}
+
+/* ── TAB 2: IMPACT ─────────────────────────── */
+function renderImpact(d) {
+  const { labCPR, totCPR, hoursSold, prodEff, prodRatio, baseActual, labTime } = d;
+  const labPct = labCPR / totCPR;
+  const emmPct = 1 - labPct;
+
+  set('i-total-cpr', eur(totCPR));
+  set('i-lab-cpr',   eur(labCPR));
+  set('i-lab-pct',   (labPct*100).toFixed(1) + '%');
+  set('i-emm-cpr',   '€21.85');
+  set('i-emm-pct',   (emmPct*100).toFixed(1) + '%');
+  set('i-emm-ann',   eurK(EMM_COST * baseActual));
+  set('i-emm-ann-sub', 'at ' + f0(baseActual) + ' repairs');
+
+  set('i-lab-big',   eur(labCPR));
+  set('i-emm-big',   '€21.85');
+  const sb = document.getElementById('i-split-bar');
+  if (sb) sb.style.width = (labPct * 100).toFixed(1) + '%';
+  set('i-lab-note',   eur(labCPR));
+  set('i-total-note', eur(totCPR));
+
+  // System bars
+  const maxSys = Math.max(...EMM_SYSTEMS.map(s=>s.cost));
+  document.getElementById('i-sys-bars').innerHTML = EMM_SYSTEMS.map(s => `
+    <div class="bar-row">
+      <div class="bar-row-lbl">${s.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(s.cost/maxSys*100).toFixed(1)}%;background:${s.color};"></div></div>
+      <div class="bar-num">€${s.cost.toFixed(2)}</div>
+    </div>`).join('');
+
+  // Labour KPIs
+  const lkEl = document.getElementById('i-labour-kpis');
+  if (lkEl) lkEl.style.display = S.role === 'rep' ? 'grid' : 'none';
+  set('i-hrs-sold',  Math.round(hoursSold).toLocaleString('nl-NL'));
+  set('i-hrs-sub',   f0(baseActual) + ' × ' + labTime.toFixed(1) + 'h');
+  set('i-prod-eff',  pct(prodEff));
+  set('i-prod-ratio', pct(prodRatio));
+  set('i-ins-labpct', (labPct*100).toFixed(1) + '%');
+}
+
+/* ── TAB 3: SOLUTION ───────────────────────── */
+function renderSolution(d) {
+  const { baseTp, newTp, tpGain, savings, nextBn, impPct,
+          prepCap, paintCap, boothCap,
+          newPrepCap, newBoothCap, labCPR } = d;
+
+  set('s-savings',      eurK(savings));
+  const gainEl = document.getElementById('s-tp-gain');
+  if (gainEl) { gainEl.textContent = '+' + f0(tpGain); gainEl.className = 'kc-val' + (tpGain > 0 ? ' green' : ''); }
+  set('s-tp-gain-pct', '+' + (baseTp > 0 ? (tpGain/baseTp*100).toFixed(1) : '0') + '% output');
+  set('s-new-tp',   f0(newTp));
+  set('s-next-bn',  nextBn);
+  set('ss-savings', eurK(savings));
+  set('ss-gained',  '+' + f0(tpGain));
+  set('ss-imp',     impPct + '% on Booth');
+  set('ss-lab',     eur(labCPR));
+  const spEl = document.getElementById('s-pill-pct');
+  if (spEl) spEl.textContent = impPct + '%';
+  set('oc-before', f0(baseTp));
+  set('oc-after',  f0(newTp));
+  set('oc-gain',   '+' + f0(tpGain));
+
+  // Constraint bars — normalize to max of all stages
+  const maxStage = Math.max(prepCap, paintCap, boothCap);
+  const baseMinCap = Math.min(prepCap, paintCap, boothCap);
+  const isBnBooth = boothCap === baseMinCap;
+
+  // BEFORE bars
+  const beforeBars = [
+    { label:'Booth',    val:boothCap, color: isBnBooth ? '#E24B4A' : '#0078A9' },
+    { label:'Prep',     val:prepCap,  color: (!isBnBooth && prepCap === baseMinCap) ? '#E24B4A' : '#0078A9' },
+    { label:'Painting', val:paintCap, color:'#7b3fa0' },
+  ];
+  renderSimBars('s-bars-before', beforeBars, maxStage);
+
+  // AFTER bars
+  const afterMin = Math.min(newBoothCap, newPrepCap, paintCap);
+  const afterBars = [
+    { label:'Booth',    val:newBoothCap, color: newBoothCap > boothCap ? '#10B981' : '#E24B4A' },
+    { label:'Prep',     val:newPrepCap,  color: newPrepCap === afterMin ? '#EF9F27' : '#0078A9' },
+    { label:'Painting', val:paintCap,    color:'#7b3fa0' },
+  ];
+  renderSimBars('s-bars-after', afterBars, Math.max(newBoothCap, newPrepCap, paintCap));
+
+  // Insight
+  set('s-ins-pct',    impPct + '%');
+  set('s-ins-gain',   f0(tpGain));
+  set('s-ins-before', f0(baseTp));
+  set('s-ins-after',  f0(newTp));
+}
+
+function renderSimBars(containerId, bars, maxV) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = bars.map(b => `
+    <div class="bar-row">
+      <div class="bar-row-lbl">${b.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(b.val/maxV*100)).toFixed(1)}%;background:${b.color};"></div></div>
+      <div class="bar-num">${f0(b.val)} <span style="color:var(--muted);font-weight:400;">(${(b.val/maxV*100).toFixed(0)}%)</span></div>
+    </div>`).join('');
+}
+
+/* ── TAB 4: PRODUCTS ───────────────────────── */
+function renderProducts(d) {
+  const el = document.getElementById('prod-list');
+  if (!el) return;
+  el.innerHTML = STEPS.map(s => buildStepRow(s, d)).join('');
+}
+
+function buildStepRow(step, d) {
+  const on = S.toggles[step.id] || false;
+  const costStr = step.cost ? `€${step.cost.toFixed(2)}/repair` : '';
+
+  let rowCls = 'step-row';
+  if (!step.disabled && on && step.highCost) rowCls += ' high-cost';
+  else if (!step.disabled && on && step.ambCost) rowCls += ' amb-cost';
+
+  const subHtml = step.sub ? `<div class="step-sub">${step.sub}${step.pendingTag ? ' <span class="pill pill-amber" style="font-size:9px;padding:1px 5px;margin-left:4px;">pending</span>':''}</div>` : '';
+
+  let rightHtml = '';
+  if (step.disabled) {
+    rightHtml = `<span style="font-size:10px;color:var(--subtle);">No EMM products</span>`;
+  } else {
+    rightHtml = `
+      <span class="step-cost" style="opacity:${on?1:0.45};">${costStr}</span>
+      <label class="tog" onclick="event.stopPropagation()">
+        <input type="checkbox" ${on?'checked':''} onchange="toggleStep(${step.id}, this.checked)">
+        <span class="tog-track"></span>
+      </label>`;
+  }
+
+  let expandedHtml = '';
+  if (step.id === 4 && on) {
+    expandedHtml = `
+      <div class="step-expanded">
+        <div class="prod-grid">
+          ${STEP4_PRODS.map(p=>`<div class="prod-card"><div class="prod-name">${p.name}</div><div class="prod-brand">${p.brand}</div></div>`).join('')}
+        </div>
+        <div class="impact-row">
+          <span class="pill pill-green">−30% time verified</span>
+          <span class="pill pill-blue">+${f0(d.tpGain)} repairs/yr</span>
+          <span class="pill pill-gray">€${(step.cost||0).toFixed(2)} EMM</span>
+          <span style="font-size:10px;color:var(--muted);font-style:italic;">enter spend for exact saving</span>
+        </div>
+      </div>`;
+  } else if (step.id === 5 && on) {
+    expandedHtml = `
+      <div class="step-expanded">
+        <div class="impact-row">
+          <span class="pill pill-amber">Masking time saving — pending</span>
+          <span class="pill pill-gray">€${(step.cost||0).toFixed(2)} EMM/repair</span>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="${rowCls}" id="step-row-${step.id}">
+      <div class="step-hdr ${step.disabled ? '' : ''}">
+        <span class="step-num">${step.id}</span>
+        <div class="step-info">
+          <div class="step-name" style="opacity:${step.disabled||on?1:0.6};">${step.name}</div>
+          ${subHtml}
+        </div>
+        ${rightHtml}
+      </div>
+      ${expandedHtml}
+    </div>`;
+}
+
+function toggleStep(id, val) {
+  const step = STEPS.find(s => s.id === id);
+  if (!step || step.disabled) return;
+  S.toggles[id] = val;
+  const d = derived();
+  renderProducts(d);
+  if (id === 4 || id === 5) {
+    calcImproved();
+  } else {
+    renderBottomStrip(d);
+  }
+  if (S.activeTab === 3) {
+    const sp = document.getElementById('spend-preview');
+    if (sp) sp.innerHTML = buildPreview();
+  }
+}
+
+/* ── TAB 5: EXPORT ─────────────────────────── */
+function renderExport(d) {
+  const { util, boothUtil, flow, capGap, bn,
+          hoursSold, prodEff, prodRatio,
+          labCPR, totCPR, baseTp, tpGain, savings, nextBn, baseActual } = d;
+
+  set('e-savings', eurK(savings));
+  set('e-gain',    '+' + f0(tpGain));
+  set('e-booth',   pct(boothUtil));
+  set('e-cpr',     eur(totCPR));
+
+  const gapAbs = Math.abs(Math.round(capGap));
+  const rows = [
+    ['Labour util.',       pct(util)],
+    ['Booth util.',        pct(boothUtil)],
+    ['Flow efficiency',    pct(flow)],
+    ['Capacity gap',       (capGap>=0?'+':'−') + gapAbs.toLocaleString('nl-NL')],
+    ['Labour / repair',    eur(labCPR)],
+    ['EMM / repair',       '€21.85'],
+    ['Total / repair',     eur(totCPR)],
+    ['Hours sold',         Math.round(hoursSold).toLocaleString('nl-NL')],
+    ['Productive eff.',    pct(prodEff)],
+    ['Productivity ratio', pct(prodRatio)],
+    ['Throughput gain',    '+' + f0(tpGain)],
+    ['Savings',            eurK(savings)],
+    ['Next bottleneck',    nextBn],
+  ];
+  const tEl = document.getElementById('e-kpi-table');
+  if (tEl) tEl.innerHTML = rows.map(([l,v]) =>
+    `<div class="stat-row"><span class="stat-lbl">${l}</span><span class="stat-val">${v}</span></div>`).join('');
+
+  const maxNP = Math.max(...EMM_SYSTEMS.map(s=>s.cost));
+  const npEl = document.getElementById('e-np-bars');
+  if (npEl) npEl.innerHTML = EMM_SYSTEMS.map(s => `
+    <div class="bar-row">
+      <div class="bar-row-lbl" style="font-size:10px;">${s.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(s.cost/maxNP*100).toFixed(1)}%;background:${s.color};"></div></div>
+      <div class="bar-num">€${s.cost.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+/* ── BOTTOM STRIP ──────────────────────────── */
+function renderBottomStrip(d) {
+  if (!d) d = derived();
+  const { tpGain, savings, bn, totCPR } = d;
+  const annual = parseFloat(S.clientAnnual) || 0;
+  const hasSpend = annual > 0;
+
+  const tpEl = document.getElementById('bs-tp-gain');
+  if (tpEl) { tpEl.textContent = tpGain > 0 ? '+' + f0(tpGain) : f0(tpGain); tpEl.className = 'strip-val ' + (tpGain > 0 ? 'green' : ''); }
+
+  const csEl = document.getElementById('bs-cost-saving');
+  if (csEl) {
+    if (hasSpend) {
+      const saving = Math.max(0, annual - d.baseActual * EMM_COST);
+      csEl.textContent = '€' + Math.round(saving).toLocaleString('nl-NL');
+      csEl.className   = 'strip-val green';
+    } else {
+      csEl.textContent = 'Enter spend';
+      csEl.className   = 'strip-val dimmed';
+    }
+  }
+
+  set('bs-bn',      bn);
+  set('bs-savings', eurK(savings));
+  set('bs-cpr',     eur(totCPR));
+
+  const calcEl = document.getElementById('bs-calc');
+  if (calcEl) { calcEl.textContent = hasSpend ? 'Precise' : 'Estimated'; calcEl.className = 'strip-val' + (hasSpend ? '' : ' dimmed'); }
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+function init() {
+  syncSlider('repairs_per_year','disp-repairs', v => Math.round(v).toLocaleString());
+  renderProducts(derived()); // show product list with defaults before API returns
+  calculate();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
