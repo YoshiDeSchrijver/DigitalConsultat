@@ -293,10 +293,11 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 .kpi-lbc.red   { border-left-color:var(--red); }
 
 /* ── DIAGNOSIS — SPECIFIC STYLES ─────────────────── */
-.diag-kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.diag-kpi-strip { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
 .diag-kpi-strip .kc-val  { font-size:26px; }
 .diag-kpi-strip .kc-lbl  { margin-bottom:6px; }
-.diag-kpi-strip .kc.red  { background:#FFF5F5; border-top-width:3px; }
+.diag-kpi-strip .kc.red  { background:#FFF0F0; border-top:3px solid var(--red); }
+.diag-kpi-strip .kc.red .kc-val { font-size:34px; }
 
 .diag-grid { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:10px;
              margin-bottom:12px; align-items:stretch; }
@@ -316,11 +317,14 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
   background:var(--navy); border-radius:var(--radius);
   border-left:4px solid var(--red); padding:16px 20px;
 }
-.diag-bn-statement {
-  font-size:15px; font-weight:700; color:white; margin-bottom:6px;
+.diag-bn-l1 {
+  font-size:16px; font-weight:700; color:white; margin-bottom:4px;
 }
-.diag-bn-detail {
-  font-size:12px; color:rgba(255,255,255,.65); line-height:1.6;
+.diag-bn-l2 {
+  font-size:13px; font-weight:600; color:rgba(255,255,255,.85); margin-bottom:5px;
+}
+.diag-bn-l3 {
+  font-size:11px; color:rgba(255,255,255,.5); line-height:1.5;
 }
 
 /* ── SOLUTION TAB ────────────────────────────────── */
@@ -686,14 +690,20 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 
       <!-- 3. BOTTLENECK WARNING BOX -->
       <div class="diag-bn-box">
-        <div class="diag-bn-statement" id="d-bn-statement">—</div>
-        <div class="diag-bn-detail"    id="d-bn-detail">—</div>
+        <div class="diag-bn-l1" id="d-bn-l1">—</div>
+        <div class="diag-bn-l2" id="d-bn-l2">—</div>
+        <div class="diag-bn-l3" id="d-bn-l3">—</div>
       </div>
 
     </section><!-- /tab-diagnosis -->
 
     <!-- ════════════ TAB: IMPACT ═════════════ -->
     <section id="tab-impact" class="tab-section" style="display:none">
+
+      <!-- Context bar -->
+      <div style="background:var(--navy);border-radius:var(--radius);padding:10px 16px;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,.7);flex-shrink:0;">
+        Current bottleneck: <strong style="color:white;" id="i-bn-label">—</strong>
+      </div>
 
       <!-- KPI strip -->
       <div class="kpi-strip">
@@ -791,6 +801,11 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 
     <!-- ════════════ TAB: SOLUTION ════════════ -->
     <section id="tab-solution" class="tab-section" style="display:none">
+
+      <!-- Unlock headline -->
+      <div id="s-headline" style="background:var(--green);border-radius:var(--radius);padding:12px 18px;margin-bottom:10px;color:white;font-size:15px;font-weight:700;text-align:center;flex-shrink:0;">
+        Fixing <span id="s-headline-bn">—</span> unlocks +<span id="s-headline-gain">—</span> repairs/yr
+      </div>
 
       <!-- KPI strip -->
       <div class="kpi-strip">
@@ -1715,9 +1730,13 @@ function renderDiagnosis(d) {
                 : b.isBn    ? '#E24B4A'
                 :              '#0078A9';
     const w = Math.min(100, (b.val / maxVal) * 100).toFixed(1);
+    const fade  = !b.isBn && !b.isDemand ? 'opacity:0.3;' : '';
+    const badge = b.isBn
+      ? `<span style="font-size:9px;font-weight:700;background:var(--red);color:white;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle;letter-spacing:.5px;">LIMIT</span>`
+      : '';
     return `
-      <div class="bar-row">
-        <div class="bar-lbl" style="color:${color};font-weight:${b.isBn||b.isDemand?700:500}">${b.label}</div>
+      <div class="bar-row" style="${fade}">
+        <div class="bar-lbl" style="color:${color};font-weight:${b.isBn||b.isDemand?700:500}">${b.label}${badge}</div>
         <div class="bar-track">
           <div class="bar-fill" style="width:${w}%;background:${color};"></div>
         </div>
@@ -1736,15 +1755,10 @@ function renderDiagnosis(d) {
   set('wd-rpb', (baseActual / Math.max(inp.amount_spraybooths, 1) / days).toFixed(2));
   set('wd-tp',  f0(baseTp) + '/yr');
 
-  // Bottleneck warning box
-  const bnUtil = d.boothUtil;
-  set('d-bn-statement',
-    `${bn} limits the system — ${gapAbs.toLocaleString('nl-NL')} repairs/yr lost`);
-  set('d-bn-detail',
-    `At ${pct(bnUtil)} utilisation there is zero buffer. ` +
-    `Improving other stages first delivers no throughput gain. ` +
-    `At ${eur(totCPR)} per repair, these ${gapAbs.toLocaleString('nl-NL')} lost jobs ` +
-    `represent significant unrealised revenue.`);
+  // Bottleneck warning box — detailed text set by updateDiagnosisInsight
+  set('d-bn-l1', `${bn} is the binding constraint`);
+  set('d-bn-l2', `${gapAbs.toLocaleString('nl-NL')} repairs/yr lost`);
+  set('d-bn-l3', `No other improvement increases throughput until this stage is resolved.`);
 }
 
 /* ═══════════════════════════════════════════
@@ -1765,6 +1779,8 @@ function renderBottomStrip(d) {
 ═══════════════════════════════════════════ */
 function renderImpact(d) {
   const { labCPR, totCPR, baseActual, labTime, hoursSold, prodEff, prodRatio, util } = d;
+
+  set('i-bn-label', d.bn);
 
   const labPct = labCPR / totCPR;
   const emmPct = 1 - labPct;
@@ -1855,6 +1871,9 @@ function renderSolution(d) {
   // Savings type
   const savingsType = d.boothUtil >= 0.9 ? 'Cost saving'
     : d.boothUtil < 0.6 ? 'Volume opportunity' : 'Mixed';
+
+  set('s-headline-bn',   bn || 'Booth');
+  set('s-headline-gain', tpGain > 0 ? f0(tpGain) : '0');
 
   set('s-savings',     eurK(savings));
   const gainEl = document.getElementById('s-tp-gain');
@@ -2154,43 +2173,34 @@ function exportEmail() {
 ═══════════════════════════════════════════ */
 function updateDiagnosisInsight(d) {
   const { bn, boothUtil, prepUtil, paintUtil, capGap, totCPR } = d;
-  const gapAbs   = Math.abs(Math.round(capGap));
-  const bnUtilPct = pct(Math.max(boothUtil, prepUtil, paintUtil));
-  const isUnder  = capGap < 0;
+  const gapAbs    = Math.abs(Math.round(capGap));
+  const bnUtilVal = Math.max(boothUtil, prepUtil, paintUtil);
+  const bnUtilPct = pct(bnUtilVal);
+  const isUnder   = capGap < 0;
 
-  let statement, detail;
+  let l1, l2, l3;
 
   if (!isUnder) {
-    // No bottleneck — system has excess capacity
-    statement = `System has capacity headroom — ${f0(Math.abs(capGap))} repairs/yr available`;
-    detail    = `All stages are below demand. Labour utilisation is ${pct(d.util)} — ` +
-                `the workshop has room to absorb more jobs without adding staff or equipment. ` +
-                `Focus is on filling demand rather than removing a capacity constraint.`;
+    l1 = `System has capacity headroom`;
+    l2 = `${f0(Math.abs(capGap))} repairs/yr available — no bottleneck active`;
+    l3 = `Labour utilisation is ${pct(d.util)}. Focus on filling demand, not removing a constraint.`;
   } else if (bn.includes('Booth')) {
-    statement = `Booth limits the system — ${gapAbs.toLocaleString('nl-NL')} repairs/yr lost`;
-    detail    = `At ${bnUtilPct} utilisation the booth has zero buffer. ` +
-                `Improving prep or painting first delivers no throughput gain — ` +
-                `every bottleneck fix must target the booth. ` +
-                `At ${eur(totCPR)} per repair, ${gapAbs.toLocaleString('nl-NL')} lost jobs ` +
-                `represent significant unrealised revenue.`;
+    l1 = `Booth at ${bnUtilPct} — zero buffer`;
+    l2 = `${gapAbs.toLocaleString('nl-NL')} repairs/yr unrealised at ${eur(totCPR)}/repair`;
+    l3 = `Improving prep or painting first delivers no throughput gain. Fix the booth first.`;
   } else if (bn.includes('Preparation')) {
-    statement = `Preparation limits the system — ${gapAbs.toLocaleString('nl-NL')} repairs/yr lost`;
-    detail    = `At ${bnUtilPct} utilisation the prep stage has no spare capacity. ` +
-                `Adding a painter or improving booth time will not increase output — ` +
-                `preparation workers are the binding constraint. ` +
-                `At ${eur(totCPR)} per repair, ${gapAbs.toLocaleString('nl-NL')} lost jobs ` +
-                `represent significant unrealised revenue.`;
+    l1 = `Preparation at ${bnUtilPct} — zero buffer`;
+    l2 = `${gapAbs.toLocaleString('nl-NL')} repairs/yr unrealised at ${eur(totCPR)}/repair`;
+    l3 = `Adding painters or improving booth time will not increase output. Prep is the binding constraint.`;
   } else {
-    statement = `Painting limits the system — ${gapAbs.toLocaleString('nl-NL')} repairs/yr lost`;
-    detail    = `At ${bnUtilPct} utilisation the painting stage has no spare capacity. ` +
-                `Gains in prep or booth time will not increase throughput — ` +
-                `the number of spray painters is the binding constraint. ` +
-                `At ${eur(totCPR)} per repair, ${gapAbs.toLocaleString('nl-NL')} lost jobs ` +
-                `represent significant unrealised revenue.`;
+    l1 = `Painting at ${bnUtilPct} — zero buffer`;
+    l2 = `${gapAbs.toLocaleString('nl-NL')} repairs/yr unrealised at ${eur(totCPR)}/repair`;
+    l3 = `Gains in prep or booth time will not increase throughput. Spray painters are the binding constraint.`;
   }
 
-  set('d-bn-statement', statement);
-  set('d-bn-detail',    detail);
+  set('d-bn-l1', l1);
+  set('d-bn-l2', l2);
+  set('d-bn-l3', l3);
 }
 
 /* ═══════════════════════════════════════════
