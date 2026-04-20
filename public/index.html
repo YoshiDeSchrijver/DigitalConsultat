@@ -25,7 +25,7 @@
   --radius: 8px;
   --left-w: 280px;
   --tab-h:  42px;
-  --strip-h:48px;
+  --strip-h:58px;
 }
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html,body { height:100%; overflow:hidden; }
@@ -152,21 +152,35 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 /* ── BOTTOM STRIP ────────────────────────────────── */
 #bottom-strip {
   height:var(--strip-h); background:var(--navy); display:flex; align-items:center;
-  padding:0 20px; flex-shrink:0; overflow:hidden; border-top:1px solid #1a3560;
+  padding:0 20px; flex-shrink:0; overflow:hidden; border-top:2px solid rgba(255,255,255,.08);
 }
 .strip-item {
-  display:flex; align-items:center; gap:8px; padding:0 14px;
-  border-right:1px solid rgba(255,255,255,.1); flex:1; min-width:0;
+  display:flex; flex-direction:column; justify-content:center; gap:3px;
+  padding:0 18px; border-right:1px solid rgba(255,255,255,.1); flex:1; min-width:0;
 }
 .strip-item:first-child { padding-left:0; }
 .strip-item:last-child  { border-right:none; }
-.strip-lbl  { font-size:8px; color:rgba(255,255,255,.4); text-transform:uppercase;
-              letter-spacing:.07em; white-space:nowrap; flex-shrink:0; }
-.strip-val  { font-size:13px; font-weight:700; color:rgba(255,255,255,.9); white-space:nowrap; }
+.strip-item.primary     { flex:1.4; border-right:1px solid rgba(255,255,255,.18); }
+.strip-lbl  { font-size:9px; color:rgba(255,255,255,.55); text-transform:uppercase;
+              letter-spacing:.08em; white-space:nowrap; }
+.strip-item.primary .strip-lbl { color:rgba(255,255,255,.7); }
+.strip-val  { font-size:15px; font-weight:700; color:rgba(255,255,255,.9); white-space:nowrap; line-height:1; }
+.strip-item.primary .strip-val { font-size:20px; }
 .strip-val.green  { color:var(--green); }
 .strip-val.amber  { color:var(--amber); }
 .strip-val.red    { color:var(--red); }
 .strip-val.dimmed { color:rgba(255,255,255,.3); font-weight:400; font-style:italic; }
+
+/* ── TAB FLOW CTA ────────────────────────────────── */
+.tab-cta {
+  display:flex; justify-content:flex-end; padding:14px 0 2px; flex-shrink:0;
+}
+.tab-cta-btn {
+  background:var(--blue); color:white; border:none; border-radius:20px;
+  padding:9px 20px; font-size:12px; font-weight:600; cursor:pointer;
+  font-family:inherit; transition:all .15s; letter-spacing:.01em;
+}
+.tab-cta-btn:hover { background:var(--blue-d); }
 
 /* ── KPI CARDS ───────────────────────────────────── */
 .kpi-strip   { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
@@ -695,6 +709,10 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         <div class="diag-bn-l3" id="d-bn-l3">—</div>
       </div>
 
+      <div class="tab-cta">
+        <button class="tab-cta-btn" onclick="switchTab('impact')">See financial impact →</button>
+      </div>
+
     </section><!-- /tab-diagnosis -->
 
     <!-- ════════════ TAB: IMPACT ═════════════ -->
@@ -795,6 +813,10 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
       <div class="insight amber">
         <div class="insight-lbl" id="i-insight-title">—</div>
         <div class="insight-text" id="i-insight-body">—</div>
+      </div>
+
+      <div class="tab-cta">
+        <button class="tab-cta-btn" onclick="switchTab('solution')">See how to improve →</button>
       </div>
 
     </section><!-- /tab-impact -->
@@ -915,6 +937,10 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         <div class="insight-text" id="s-insight-body">—</div>
       </div>
 
+      <div class="tab-cta">
+        <button class="tab-cta-btn" onclick="switchTab('products')">View products →</button>
+      </div>
+
     </section><!-- /tab-solution -->
 
     <!-- ════════════ TAB: PRODUCTS ═══════════ -->
@@ -997,11 +1023,11 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
               <div class="prod-brand">PPG / Finixa</div>
               <div class="prod-cost-badge">€5.18 / repair</div>
             </div>
-            <!-- Finixa PPAS — verified claim -->
-            <div class="prod-card" style="border-color:#A7F3D0;">
+            <!-- Finixa PPAS — effect-first -->
+            <div class="prod-card" style="border-color:#A7F3D0;background:#F0FDF4;">
+              <div class="prod-claim" style="font-size:12px;margin-bottom:3px;">−30% time verified ✓</div>
               <div class="prod-name">Finixa PPAS</div>
               <div class="prod-brand">PPG / Finixa</div>
-              <div class="prod-claim">−30% time verified ✓</div>
             </div>
             <!-- Manual sanding -->
             <div class="prod-card">
@@ -1118,10 +1144,19 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         </div>
       </div>
 
+      <div class="tab-cta">
+        <button class="tab-cta-btn" onclick="switchTab('export')">Export results →</button>
+      </div>
+
     </section><!-- /tab-products -->
 
     <!-- ════════════ TAB: EXPORT ══════════════ -->
     <section id="tab-export" class="tab-section" style="display:none">
+
+      <!-- Context line -->
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;padding:0 2px;">
+        This report shows where performance is lost and how to recover it.
+      </div>
 
       <!-- Summary hero (navy box) -->
       <div class="exp-hero">
@@ -1168,17 +1203,25 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 
       </div>
 
-      <!-- CTA cards -->
-      <div class="cta-row">
-        <div class="cta-card primary" onclick="window.print()">
-          <div class="cta-ico">↓</div>
-          <div class="cta-lbl">Download PDF</div>
-          <div class="cta-sub">Full analysis report</div>
+      <!-- Primary CTA: Download -->
+      <div style="margin-bottom:10px;">
+        <div class="cta-card primary" onclick="window.print()"
+             style="grid-column:1/-1;padding:20px 24px;display:flex;align-items:center;justify-content:center;gap:14px;text-align:left;">
+          <div style="font-size:28px;line-height:1;">↓</div>
+          <div>
+            <div class="cta-lbl" style="font-size:15px;">Download PDF Report</div>
+            <div class="cta-sub">Full analysis — bottleneck, costs, improvement plan</div>
+          </div>
         </div>
-        <div class="cta-card" onclick="exportEmail()">
-          <div class="cta-ico">✉</div>
-          <div class="cta-lbl">Send by email</div>
-          <div class="cta-sub">Share with your contact</div>
+      </div>
+      <!-- Secondary CTA: Email -->
+      <div class="cta-row" style="grid-template-columns:1fr;">
+        <div class="cta-card" onclick="exportEmail()" style="display:flex;align-items:center;gap:14px;text-align:left;padding:14px 18px;">
+          <div style="font-size:22px;line-height:1;">✉</div>
+          <div>
+            <div class="cta-lbl">Send by email</div>
+            <div class="cta-sub">Share with your contact</div>
+          </div>
         </div>
       </div>
 
@@ -1209,13 +1252,13 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 
 </div><!-- /content -->
 
-  <!-- BOTTOM STRIP -->
+  <!-- BOTTOM STRIP — live system status -->
   <div id="bottom-strip">
-    <div class="strip-item">
+    <div class="strip-item primary">
       <span class="strip-lbl">Bottleneck</span>
       <span class="strip-val" id="bs-bn">—</span>
     </div>
-    <div class="strip-item">
+    <div class="strip-item primary">
       <span class="strip-lbl">Throughput</span>
       <span class="strip-val" id="bs-tp">—</span>
     </div>
@@ -1224,7 +1267,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
       <span class="strip-val" id="bs-util">—</span>
     </div>
     <div class="strip-item">
-      <span class="strip-lbl">Throughput gain</span>
+      <span class="strip-lbl">Gain potential</span>
       <span class="strip-val green" id="bs-tp-gain">—</span>
     </div>
     <div class="strip-item">
@@ -1772,6 +1815,9 @@ function renderBottomStrip(d) {
   set('bs-tp-gain', tpGain > 0 ? '+' + f0(tpGain) : '—');
   set('bs-savings', savings > 0 ? eurK(savings) : '—');
   set('bs-cpr',     eur(totCPR));
+  // Color bottleneck value red when there is a binding constraint
+  const bnEl = document.getElementById('bs-bn');
+  if (bnEl) bnEl.className = 'strip-val' + (d.capGap < 0 ? ' red' : ' green');
 }
 
 /* ═══════════════════════════════════════════
