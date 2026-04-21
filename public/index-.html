@@ -25,7 +25,7 @@
   --radius:  8px;
   --left-w:  28%;
   --tab-h:   42px;
-  --strip-h: 38px;
+  --strip-h: 48px;
 }
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html,body { height:100%; overflow:hidden; }
@@ -95,10 +95,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
   color:var(--muted); cursor:pointer; user-select:none; padding:6px 0;
   border-top:1px solid var(--border); margin-top:4px;
 }
-.adv-toggle .chev { font-size:9px; transition:transform .2s; }
-.adv-toggle.open .chev { transform:rotate(90deg); }
-.adv-panel { display:none; padding-top:10px; }
-.adv-panel.open { display:block; }
+#advanced-settings { padding-top:10px; }
 
 /* ── RIGHT PANEL ────────────────────────────────── */
 #right { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--bg); min-width:0; }
@@ -131,22 +128,28 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 /* CONTENT */
 #content { flex:1; overflow-y:auto; overflow-x:hidden; padding:18px 22px; min-height:0; }
 .tab-panel { display:none; }
-.tab-panel.active { display:block; }
+.tab-panel.active {
+  display:flex; flex-direction:column;
+  min-height:calc(100vh - var(--tab-h) - var(--strip-h));
+}
 
 /* BOTTOM STRIP */
 #bottom-strip {
   height:var(--strip-h); background:var(--navy); display:flex; align-items:center;
   padding:0 20px; flex-shrink:0; overflow:hidden;
+  border-top:1px solid #1a3560;
 }
 .strip-item { display:flex; align-items:center; gap:8px; padding:0 14px; border-right:1px solid rgba(255,255,255,.1); flex:1; min-width:0; }
 .strip-item:first-child { padding-left:0; }
 .strip-item:last-child  { border-right:none; }
-.strip-lbl { font-size:9px; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; flex-shrink:0; }
+.strip-lbl { font-size:8px; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.07em; white-space:nowrap; flex-shrink:0; }
 .strip-val { font-size:13px; font-weight:700; color:rgba(255,255,255,.9); white-space:nowrap; }
 .strip-val.green  { color:var(--green); }
 .strip-val.amber  { color:var(--amber); }
 .strip-val.red    { color:var(--red); }
 .strip-val.dimmed { color:rgba(255,255,255,.3); font-weight:400; font-style:italic; }
+#bs-tp-gain  { font-size:14px; color:#6EE7B7; }
+#bs-savings  { font-size:14px; color:#ffffff; }
 
 /* ── KPI CARDS ──────────────────────────────────── */
 .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
@@ -181,7 +184,10 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 /* ── LAYOUT ─────────────────────────────────────── */
 .card { background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border); padding:16px 18px; margin-bottom:10px; }
 .card-title { font-size:12px; font-weight:700; color:var(--text); margin-bottom:12px; }
-.two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; align-items:stretch; }
+.two-col .card { display:flex; flex-direction:column; margin-bottom:0; }
+.two-col-grow { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; align-items:stretch; }
+.two-col-grow .card { display:flex; flex-direction:column; margin-bottom:0; }
 
 .insight {
   background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border);
@@ -189,8 +195,9 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 }
 .insight.amber { border-left-color:var(--amber); }
 .insight.green { border-left-color:var(--green); }
-.insight-lbl  { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:4px; }
+.insight-lbl  { font-size:10px; font-weight:700; letter-spacing:.05em; color:var(--muted); margin-bottom:4px; }
 .insight-text { font-size:12px; color:var(--text); line-height:1.6; }
+.insight-hook { color:#0078A9; font-weight:500; margin-top:6px; }
 
 /* ── BAR CHART ──────────────────────────────────── */
 .bar-list { display:flex; flex-direction:column; gap:8px; }
@@ -244,8 +251,9 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
   background:var(--white); border-radius:var(--radius); border:0.5px solid var(--border);
   border-left:3px solid var(--border); margin-bottom:6px; overflow:hidden;
 }
-.step-row.high-cost { border-left-color:var(--red); }
-.step-row.amb-cost  { border-left-color:var(--amber); }
+.step-row.border-red      { border-left-color:#E24B4A; }
+.step-row.border-amber    { border-left-color:#EF9F27; }
+.step-row.step-disabled   { border-left-color:transparent; }
 
 .step-hdr { display:flex; align-items:center; padding:10px 14px; gap:10px; }
 .step-num { font-size:10px; font-weight:700; color:var(--subtle); width:16px; flex-shrink:0; }
@@ -273,17 +281,24 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 .step-expanded { border-top:1px solid var(--border); padding:12px 14px; background:#FAFAFA; }
 .prod-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
 .prod-card { background:var(--white); border:0.5px solid var(--border); border-radius:6px; padding:8px 10px; }
-.prod-name  { font-size:11px; font-weight:600; color:var(--text); margin-bottom:2px; }
-.prod-brand { font-size:10px; color:var(--muted); }
-.impact-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.prod-name   { font-size:11px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.prod-brand  { font-size:10px; color:var(--muted); margin-bottom:3px; }
+.prod-detail { font-size:10px; color:var(--muted); margin-top:3px; }
+.impact-row  { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+.refine-toggle { font-size:10px; color:#0078A9; cursor:pointer; margin-bottom:6px; user-select:none; }
+.refine-row    { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.refine-dot    { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+.refine-label  { font-size:10px; color:#6B7280; flex:1; }
+.refine-field  { width:52px; height:24px; border:0.5px solid #E5E7EB; border-radius:4px; background:#F9FAFB; font-size:10px; text-align:right; padding:0 5px; font-family:inherit; }
 
 /* ── EXPORT TAB ─────────────────────────────────── */
 .exp-hero {
-  background:var(--navy); border-radius:var(--radius); padding:20px;
-  margin-bottom:14px; display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  background:var(--navy); border-radius:var(--radius); padding:14px 20px;
+  margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;
 }
-.exp-hero-item .eh-lbl { font-size:10px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
-.exp-hero-item .eh-val { font-size:22px; font-weight:700; color:white; }
+.exp-hero-item .eh-lbl { font-size:10px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.05em; margin-bottom:1px; }
+.exp-hero-item .eh-val { font-size:19px; font-weight:700; color:white; }
 .cta-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
 .cta-card {
   background:var(--white); border:0.5px solid var(--border); border-radius:var(--radius);
@@ -298,9 +313,9 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 .cta-sub { font-size:11px; color:var(--muted); }
 
 /* ── LEFT: TAB-SPECIFIC ─────────────────────────── */
-.imp-box { background:#F0FDF4; border:1px solid #D1FAE5; border-radius:6px; padding:12px; }
-.imp-box-title { font-size:11px; font-weight:700; color:var(--text); margin-bottom:2px; }
-.imp-box-note  { font-size:10px; color:var(--muted); margin-top:6px; line-height:1.4; }
+.imp-box { background:#F0FDF4; border:0.5px solid #A7F3D0; border-radius:8px; padding:11px; }
+.imp-box-title { font-size:9px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.imp-box-note  { font-size:10px; color:var(--amber); margin-top:6px; line-height:1.4; }
 
 .spend-title { font-size:11px; font-weight:700; color:var(--text); margin-bottom:8px; }
 .spend-row  { display:flex; gap:8px; margin-bottom:6px; }
@@ -354,7 +369,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
           <span class="slider-lbl">Repairs per year</span>
           <span class="slider-val" id="disp-repairs">1,200</span>
         </div>
-        <input type="range" id="repairs_per_year" min="200" max="4000" step="50" value="1200"
+        <input type="range" id="repairs_per_year" min="500" max="3000" step="50" value="1200"
           oninput="syncSlider('repairs_per_year','disp-repairs',v=>Math.round(v).toLocaleString())"
           onchange="debouncedCalc()">
       </div>
@@ -401,11 +416,11 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
     </div>
 
     <!-- Advanced -->
-    <div class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">
-      <span class="chev">▶</span>
-      <span>Advanced settings</span>
+    <div class="adv-toggle" id="advanced-toggle" onclick="toggleAdvanced()">
+      <span id="advanced-toggle-icon">▶</span>
+      <span id="advanced-toggle-label">Advanced settings</span>
     </div>
-    <div class="adv-panel" id="adv-panel">
+    <div id="advanced-settings" style="display:none;padding-top:10px;">
       <div class="ctrl-row">
         <div class="ctrl-row-lbl">Prep time / repair<span class="ctrl-row-sub">hours</span></div>
         <div class="stepper">
@@ -464,7 +479,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
   <div id="content">
 
     <!-- ═══ TAB 1: DIAGNOSIS ════════════════════ -->
-    <section class="tab-panel active" id="panel-0">
+    <section class="tab-panel active" id="panel-0" style="display:flex;flex-direction:column;">
       <div class="kpi-strip">
         <div class="kc red">
           <div class="kc-lbl">Bottleneck</div>
@@ -488,10 +503,11 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         </div>
       </div>
 
-      <div class="two-col">
+      <div class="two-col-grow" style="flex:1;">
         <div class="card">
           <div class="card-title">Stage capacity vs demand</div>
           <div class="bar-list" id="d-stage-bars"></div>
+          <div style="flex:1;"></div>
           <div class="alert-box" id="d-alert">Booth limits the system — 240 repairs/yr lost</div>
         </div>
         <div class="card">
@@ -515,17 +531,17 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
       </div>
 
       <div class="insight">
-        <div class="insight-lbl">Diagnosis</div>
-        <div class="insight-text" id="d-insight">
-          <span id="d-ins-bn">Booth</span> is the binding constraint — <strong id="d-ins-gap">240</strong> repairs/yr lost.
-          At <strong id="d-ins-butil">125.0%</strong> utilisation there is zero buffer. Improving prep or painting first delivers zero throughput gain.
-          At <strong id="d-ins-cpr">€269.35</strong> total cost per repair, these <strong id="d-ins-gap2">240</strong> lost repairs represent significant unrealised revenue.
+        <div class="insight-lbl" id="diagnosis-insight-title">Booth is the binding constraint — 240 repairs/yr lost.</div>
+        <div class="insight-text" id="diagnosis-insight-body">
+          At 125.0% utilisation there is zero buffer. Improving prep or painting first delivers zero throughput gain.
+          At €269.35 total cost per repair, these 240 lost repairs represent significant unrealised revenue.
         </div>
+        <div class="insight-hook" id="diagnosis-insight-hook">Ask: what's stopping you from addressing this today?</div>
       </div>
     </section>
 
     <!-- ═══ TAB 2: IMPACT ═══════════════════════ -->
-    <section class="tab-panel" id="panel-1">
+    <section class="tab-panel" id="panel-1" style="display:flex;flex-direction:column;">
       <div class="kpi-strip">
         <div class="kc navy">
           <div class="kc-lbl">Total cost / repair</div>
@@ -549,7 +565,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         </div>
       </div>
 
-      <div class="two-col">
+      <div class="two-col-grow" style="flex:1;">
         <div class="card">
           <div class="card-title">Labour vs materials split</div>
           <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
@@ -567,6 +583,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
             <div class="rb-1" id="i-split-bar" style="width:91.9%"></div>
             <div class="rb-2"></div>
           </div>
+          <div style="flex:1;"></div>
           <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
             <strong id="i-lab-note">€247.50</strong> of <strong id="i-total-note">€269.35</strong> is labour — reducing time per repair is the single biggest lever
           </div>
@@ -574,6 +591,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         <div class="card">
           <div class="card-title">Non-paint spend by system</div>
           <div class="bar-list" id="i-sys-bars"></div>
+          <div style="flex:1;"></div>
           <hr class="card-hr">
           <div class="stat-row"><span class="stat-lbl" style="font-weight:700;">Total</span><span class="stat-val">€21.85</span></div>
         </div>
@@ -581,34 +599,31 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
 
       <!-- Labour KPIs — rep view only -->
       <div id="i-labour-kpis" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div class="kpi-lbc">
+        <div class="kpi-lbc" style="padding:14px 16px;">
           <div class="kc-lbl">Hours sold / yr</div>
-          <div class="kc-val" id="i-hrs-sold" style="font-size:18px;">5,280</div>
+          <div class="kc-val" id="i-hrs-sold" style="font-size:24px;">5,280</div>
           <div class="kc-unit" id="i-hrs-sub">960 × 5.5h</div>
         </div>
-        <div class="kpi-lbc amber">
+        <div class="kpi-lbc amber" style="padding:14px 16px;">
           <div class="kc-lbl">Productive efficiency</div>
-          <div class="kc-val" id="i-prod-eff" style="font-size:18px;">80.9%</div>
+          <div class="kc-val" id="i-prod-eff" style="font-size:24px;">80.9%</div>
           <div class="kc-unit">Target: 105–110%</div>
         </div>
-        <div class="kpi-lbc red">
+        <div class="kpi-lbc red" style="padding:14px 16px;">
           <div class="kc-lbl">Productivity ratio</div>
-          <div class="kc-val" id="i-prod-ratio" style="font-size:18px;">73.3%</div>
+          <div class="kc-val" id="i-prod-ratio" style="font-size:24px;">73.3%</div>
           <div class="kc-unit">Target: 120–130%</div>
         </div>
       </div>
 
       <div class="insight amber">
-        <div class="insight-lbl">Impact Analysis</div>
-        <div class="insight-text">
-          Labour dominates at <strong id="i-ins-labpct">91.9%</strong> — and is underperforming on every KPI the bodyshop manager tracks.
-          Sanding accounts for 39.8% of non-paint spend — the single biggest material lever. The Solution tab shows what a 20% improvement delivers.
-        </div>
+        <div class="insight-lbl" id="impact-insight-title">Labour dominates cost — and is underperforming on every KPI the bodyshop manager tracks.</div>
+        <div class="insight-text" id="impact-insight-body">At 80.9% productive efficiency and 73.3% productivity ratio, this bodyshop is well below industry targets on both measures. Sanding &amp; Surface accounts for 39.8% of non-paint spend — the single biggest material lever. The Solution tab shows what a 20% process improvement delivers.</div>
       </div>
     </section>
 
     <!-- ═══ TAB 3: SOLUTION ══════════════════════ -->
-    <section class="tab-panel" id="panel-2">
+    <section class="tab-panel" id="panel-2" style="display:flex;flex-direction:column;">
       <div class="kpi-strip">
         <div class="kc navy">
           <div class="kc-lbl">Annual savings</div>
@@ -632,7 +647,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
         </div>
       </div>
 
-      <div class="two-col">
+      <div class="two-col-grow" style="flex:1;">
         <div class="card">
           <div class="card-title">Constraint shift simulation</div>
           <div class="sim-sec-lbl before">Before</div>
@@ -640,6 +655,7 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
           <span class="sim-pill" id="s-pill">After <span id="s-pill-pct">20%</span> improvement on Booth</span>
           <div class="sim-sec-lbl after">After</div>
           <div class="bar-list" id="s-bars-after"></div>
+          <div style="flex:1;"></div>
           <div class="sim-legend">
             <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Previous bottleneck</div>
             <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Resolved</div>
@@ -652,11 +668,12 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
           <div class="summ-box">
             <div class="summ-row"><span class="summ-lbl">Annual savings</span><span class="summ-val green" id="ss-savings">€44,880</span></div>
             <div class="summ-row"><span class="summ-lbl">Repairs gained</span><span class="summ-val" id="ss-gained">+128</span></div>
-            <div class="summ-row"><span class="summ-lbl">Savings type</span><span class="summ-val" id="ss-type">Cost saving</span></div>
+            <div class="summ-row"><span class="summ-lbl">Savings type</span><span class="summ-val" id="solution-savings-type">Cost saving</span></div>
             <div class="summ-row"><span class="summ-lbl">Improvement</span><span class="summ-val" id="ss-imp">20% on Booth</span></div>
             <div class="summ-row"><span class="summ-lbl">Labour / repair</span><span class="summ-val" id="ss-lab">€247.50</span></div>
             <div class="summ-row"><span class="summ-lbl">EMM / repair</span><span class="summ-val">€21.85</span></div>
           </div>
+          <div style="flex:1;"></div>
           <div style="background:var(--bg);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--muted);margin-bottom:10px;">
             Enter client spend in Products tab for precise saving calculation
           </div>
@@ -669,12 +686,8 @@ input[type="range"] { width:100%; height:4px; accent-color:var(--blue); cursor:p
       </div>
 
       <div class="insight green">
-        <div class="insight-lbl">Solution</div>
-        <div class="insight-text">
-          A <strong id="s-ins-pct">20%</strong> improvement on the booth delivers <strong id="s-ins-gain">128</strong> additional repairs/year — no extra staff needed.
-          Throughput: <strong id="s-ins-before">960</strong> → <strong id="s-ins-after">1,088</strong>/yr. Constraint shifts to Preparation.
-          Enter client spend in Products to calculate exact material saving.
-        </div>
+        <div class="insight-lbl" id="solution-insight-title">A 20% improvement on the Booth unlocks 128 additional repairs/yr — no extra staff needed.</div>
+        <div class="insight-text" id="solution-insight-body">Throughput jumps from 960 to 1,088/yr — a 13.3% output gain from the same workforce. The constraint shifts to Preparation, which becomes the next stage to address. The Products tab shows which EMM systems deliver this improvement and at what cost per repair.</div>
       </div>
     </section>
 
@@ -779,10 +792,10 @@ const EMM_SYSTEMS = [
 ];
 
 const STEP4_PRODS = [
-  { name:'Finixa SPDI',           brand:'PPG / Finixa' },
-  { name:'Finixa PPAS',           brand:'PPG / Finixa' },
-  { name:'Manual sanding/sponges',brand:'Various'      },
-  { name:'Non-Woven Wipes',       brand:'PPG'          },
+  { name:'Finixa SPDI',            brand:'PPG / Finixa', cost:'€5.18/repair'        },
+  { name:'Finixa PPAS',            brand:'PPG / Finixa', claim:'\u221230% time verified' },
+  { name:'Manual sanding/sponges', brand:'Various',       cost:'€2.44/repair'        },
+  { name:'Non-Woven Wipes',        brand:'PPG',           cost:'€0.25/repair'        },
 ];
 
 const STEPS = [
@@ -809,6 +822,7 @@ const S = {
   clientAnnual:  '',
   role:      'rep',
   activeTab: 0,
+  refineOpen: false,
 };
 
 /* ═══════════════════════════════════════════════
@@ -860,9 +874,20 @@ function syncSlider(id, dispId, fmt) {
   if (el && v !== undefined) el.textContent = fmt ? fmt(v) : v;
 }
 
-function toggleAdv() {
-  document.getElementById('adv-toggle').classList.toggle('open');
-  document.getElementById('adv-panel').classList.toggle('open');
+function toggleRefine() {
+  S.refineOpen = !S.refineOpen;
+  const s = document.getElementById('refine-section');
+  const t = document.querySelector('.refine-toggle');
+  if (s) s.style.display = S.refineOpen ? 'block' : 'none';
+  if (t) t.textContent = (S.refineOpen ? '▼' : '▶') + ' Refine per repair step (optional)';
+}
+
+function toggleAdvanced() {
+  const panel = document.getElementById('advanced-settings');
+  const icon  = document.getElementById('advanced-toggle-icon');
+  const open  = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  icon.textContent    = open ? '▼' : '▶';
 }
 
 /* ═══════════════════════════════════════════════
@@ -931,6 +956,34 @@ function buildSpendPanel() {
         <input class="spend-input" id="sp-annual" type="number" min="0" placeholder="0" value="${a}" oninput="onSpend('a')"></div>
     </div>
     <div class="spend-note">Quick entry distributes by step cost weight. Refine for exact saving per step.</div>
+    <div class="refine-toggle" onclick="toggleRefine()">${S.refineOpen ? '▼' : '▶'} Refine per repair step (optional)</div>
+    <div id="refine-section" style="display:${S.refineOpen ? 'block' : 'none'};margin-bottom:8px;">
+      <div class="refine-row">
+        <div class="refine-dot" style="background:#E24B4A"></div>
+        <div class="refine-label">Step 4 — Panel/Plastic</div>
+        <input class="refine-field" placeholder="€/mo" id="spend-step4">
+      </div>
+      <div class="refine-row">
+        <div class="refine-dot" style="background:#E24B4A"></div>
+        <div class="refine-label">Step 5 — Prep Zone</div>
+        <input class="refine-field" placeholder="€/mo" id="spend-step5">
+      </div>
+      <div class="refine-row">
+        <div class="refine-dot" style="background:#EF9F27"></div>
+        <div class="refine-label">Step 6 — Paint Application</div>
+        <input class="refine-field" placeholder="€/mo" id="spend-step6">
+      </div>
+      <div class="refine-row">
+        <div class="refine-dot" style="background:#EF9F27"></div>
+        <div class="refine-label">Step 7 — Paint Correction</div>
+        <input class="refine-field" placeholder="€/mo" id="spend-step7">
+      </div>
+      <div class="refine-row">
+        <div class="refine-dot" style="background:#888"></div>
+        <div class="refine-label">Other steps</div>
+        <input class="refine-field" placeholder="€/mo" id="spend-other">
+      </div>
+    </div>
     <div class="preview-box" id="spend-preview">${buildPreview()}</div>`;
 }
 
@@ -960,7 +1013,7 @@ function buildPreview() {
   const costSaving = annual > 0 ? Math.round(annual * (EMM_COST / (annual / (d.baseActual || 960))) * d.baseActual) : null;
   return `
     <div class="prev-row"><span class="prev-lbl">Throughput gain</span><span class="prev-val green">${d.tpGain > 0 ? '+' + f0(d.tpGain) : '—'}</span></div>
-    <div class="prev-row"><span class="prev-lbl">Cost saving</span><span class="prev-val ${annual > 0 ? 'green' : ''}">${annual > 0 ? '€' + Math.round(annual - d.baseActual * EMM_COST).toLocaleString('nl-NL') : '—'}</span></div>
+    <div class="prev-row"><span class="prev-lbl">Cost saving</span><span class="prev-val ${annual > 0 ? 'green' : ''}">${annual > 0 ? '€' + Math.round(annual - d.baseActual * EMM_COST).toLocaleString('nl-NL') : '<span style="color:#9CA3AF;font-size:10px;font-weight:400;">Enter spend \u2192</span>'}</span></div>
     <div class="prev-row"><span class="prev-lbl">Steps using EMM</span><span class="prev-val">${activeCount}</span></div>`;
 }
 
@@ -1042,8 +1095,10 @@ function derived() {
   const baseActual = Math.min(repairs, baseTp);
 
   // From API or compute locally
-  const util      = r.utilisation        ?? (repairs * labTime) / (workers * labAvail);
-  const boothUtil = r.booth_utilisation  ?? (repairs * boothT)  / (booths  * boothAv);
+  const util      = r.utilisation             ?? (repairs * labTime) / (workers * labAvail);
+  const boothUtil = r.booth_utilisation       ?? (repairs * boothT)  / (booths  * boothAv);
+  const prepUtil  = r.preparation_utilisation ?? (repairs * prepT)   / (prepW   * labAvail);
+  const paintUtil = r.painting_utilisation    ?? (repairs * paintT)  / (paintW  * labAvail);
   const flow      = r.flow_efficiency    ?? baseTp / repairs;
   const capGap    = r.capacity_gap       ?? baseTp - repairs;
   const bnList    = r.bottleneck_process ?? (() => {
@@ -1092,7 +1147,7 @@ function derived() {
 
   return {
     inp, labCPR, totCPR, labFrac,
-    util, boothUtil, flow, capGap, bn, bnList,
+    util, boothUtil, prepUtil, paintUtil, flow, capGap, bn, bnList,
     hoursSold, prodEff, prodRatio,
     prepCap, paintCap, boothCap, baseTp, baseActual,
     newPrepCap, newBoothCap, newTp, newActual, tpGain, savings,
@@ -1187,16 +1242,75 @@ function renderDiagnosis(d) {
   set('wd-tp',  f0(baseTp) + '/yr');
 
   // Insight
-  set('d-ins-bn',    bn);
-  set('d-ins-gap',   gapAbs.toLocaleString('nl-NL'));
-  set('d-ins-butil', pct(boothUtil));
-  set('d-ins-cpr',   eur(totCPR));
-  set('d-ins-gap2',  gapAbs.toLocaleString('nl-NL'));
+  updateDiagnosisInsight({ bn, gapAbs, boothUtil, totCPR });
+}
+
+function updateDiagnosisInsight({ bn, gapAbs, boothUtil, totCPR }) {
+  const gapFmt   = gapAbs.toLocaleString('nl-NL');
+  const utilFmt  = pct(boothUtil);
+  const cprFmt   = eur(totCPR);
+
+  const titleEl = document.getElementById('diagnosis-insight-title');
+  const bodyEl  = document.getElementById('diagnosis-insight-body');
+  const hookEl  = document.getElementById('diagnosis-insight-hook');
+
+  if (titleEl) titleEl.textContent =
+    `${bn} is the binding constraint — ${gapFmt} repairs/yr lost.`;
+
+  if (bodyEl) bodyEl.innerHTML =
+    `At <strong>${utilFmt}</strong> utilisation there is zero buffer. ` +
+    `Improving prep or painting first delivers zero throughput gain. ` +
+    `At <strong>${cprFmt}</strong> total cost per repair, these <strong>${gapFmt}</strong> ` +
+    `lost repairs represent significant unrealised revenue.`;
+
+  if (hookEl) {
+    if (bn === 'Booth') {
+      hookEl.textContent = 'Ask: what\u2019s stopping you from addressing this today?';
+    } else if (bn === 'Prep') {
+      hookEl.textContent = 'Ask: how many preparation workers are available to add capacity?';
+    } else {
+      hookEl.textContent = 'Ask: what would it take to free up capacity in ' + bn + '?';
+    }
+  }
+}
+
+function updateImpactInsight(r) {
+  const labourUtil = (r.utilisation * 100).toFixed(1);
+  const prodEff    = r.productive_efficiency ? (r.productive_efficiency * 100).toFixed(1) : null;
+  const prodRatio  = r.productivity_ratio    ? (r.productivity_ratio    * 100).toFixed(1) : null;
+  const sandingPct = '39.8';
+
+  let title = 'Labour dominates cost \u2014 and is underperforming on every KPI the bodyshop manager tracks';
+  let body  = '';
+
+  if (prodEff && prodRatio) {
+    const effVal   = parseFloat(prodEff);
+    const ratioVal = parseFloat(prodRatio);
+    const effStatus   = effVal   >= 100 ? 'meeting'   : effVal   >= 90 ? 'approaching' : 'well below';
+    const ratioStatus = ratioVal >= 120 ? 'meeting'   : ratioVal >= 100 ? 'approaching' : 'well below';
+
+    if (effVal >= 105 && ratioVal >= 120) {
+      title = 'Labour performance is strong \u2014 both efficiency targets are being met';
+      body  = `At ${prodEff}% productive efficiency and ${prodRatio}% productivity ratio, this bodyshop is performing at or above industry targets. The primary cost lever is non-paint materials \u2014 Sanding & Surface accounts for ${sandingPct}% of total EMM spend at \u20ac8.69 per repair.`;
+    } else if (effVal >= 100) {
+      title = 'Labour efficiency is on target \u2014 but productivity ratio has room to improve';
+      body  = `At ${prodEff}% productive efficiency the team is selling more hours than available \u2014 a strong result. However the productivity ratio of ${prodRatio}% is ${ratioStatus} the 120\u2013130% target, meaning workers are taking longer than estimated per repair. Sanding & Surface at ${sandingPct}% of non-paint spend is the biggest material lever.`;
+    } else {
+      body  = `At ${prodEff}% productive efficiency and ${prodRatio}% productivity ratio, this bodyshop is ${effStatus} industry targets on both measures. Sanding & Surface accounts for ${sandingPct}% of non-paint spend \u2014 the single biggest material lever. The Solution tab shows what a 20% process improvement delivers.`;
+    }
+  } else {
+    body = `Labour dominates at ${labourUtil}% utilisation and is underperforming on every KPI the bodyshop manager tracks. Sanding & Surface accounts for ${sandingPct}% of non-paint spend \u2014 the single biggest material lever.`;
+  }
+
+  const titleEl = document.getElementById('impact-insight-title');
+  const bodyEl  = document.getElementById('impact-insight-body');
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl)  bodyEl.textContent  = body;
 }
 
 /* ── TAB 2: IMPACT ─────────────────────────── */
 function renderImpact(d) {
-  const { labCPR, totCPR, hoursSold, prodEff, prodRatio, baseActual, labTime } = d;
+  const { labCPR, totCPR, hoursSold, prodEff, prodRatio, baseActual, labTime, util } = d;
   const labPct = labCPR / totCPR;
   const emmPct = 1 - labPct;
 
@@ -1215,10 +1329,10 @@ function renderImpact(d) {
   set('i-lab-note',   eur(labCPR));
   set('i-total-note', eur(totCPR));
 
-  // System bars
+  // System bars — amber highlight on top 2 cost drivers
   const maxSys = Math.max(...EMM_SYSTEMS.map(s=>s.cost));
-  document.getElementById('i-sys-bars').innerHTML = EMM_SYSTEMS.map(s => `
-    <div class="bar-row">
+  document.getElementById('i-sys-bars').innerHTML = EMM_SYSTEMS.map((s, i) => `
+    <div class="bar-row"${i < 2 ? ' style="background:#FFFBEB;border-radius:3px;"' : ''}>
       <div class="bar-row-lbl">${s.name}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${(s.cost/maxSys*100).toFixed(1)}%;background:${s.color};"></div></div>
       <div class="bar-num">€${s.cost.toFixed(2)}</div>
@@ -1231,14 +1345,29 @@ function renderImpact(d) {
   set('i-hrs-sub',   f0(baseActual) + ' × ' + labTime.toFixed(1) + 'h');
   set('i-prod-eff',  pct(prodEff));
   set('i-prod-ratio', pct(prodRatio));
-  set('i-ins-labpct', (labPct*100).toFixed(1) + '%');
+
+  // Dynamic insight
+  updateImpactInsight({
+    utilisation:          util,
+    productive_efficiency: prodEff,
+    productivity_ratio:    prodRatio,
+    total_cost_per_repair: totCPR,
+  });
 }
 
 /* ── TAB 3: SOLUTION ───────────────────────── */
 function renderSolution(d) {
-  const { baseTp, newTp, tpGain, savings, nextBn, impPct,
-          prepCap, paintCap, boothCap,
-          newPrepCap, newBoothCap, labCPR } = d;
+  const { baseTp, newTp, tpGain, savings, nextBn, impPct, factor,
+          prepCap, paintCap, boothCap, boothUtil, prepUtil, paintUtil,
+          newPrepCap, newBoothCap, labCPR, bn } = d;
+
+  // Savings type based on the highest-utilised (bottleneck) stage
+  const bottleneckUtil = boothUtil >= prepUtil && boothUtil >= paintUtil
+    ? boothUtil
+    : prepUtil >= paintUtil ? prepUtil : paintUtil;
+  const savingsType = bottleneckUtil >= 0.9 ? 'Cost saving'
+    : bottleneckUtil < 0.6 ? 'Volume opportunity'
+    : 'Mixed';
 
   set('s-savings',      eurK(savings));
   const gainEl = document.getElementById('s-tp-gain');
@@ -1250,6 +1379,7 @@ function renderSolution(d) {
   set('ss-gained',  '+' + f0(tpGain));
   set('ss-imp',     impPct + '% on Booth');
   set('ss-lab',     eur(labCPR));
+  set('solution-savings-type', savingsType);
   const spEl = document.getElementById('s-pill-pct');
   if (spEl) spEl.textContent = impPct + '%';
   set('oc-before', f0(baseTp));
@@ -1278,11 +1408,54 @@ function renderSolution(d) {
   ];
   renderSimBars('s-bars-after', afterBars, Math.max(newBoothCap, newPrepCap, paintCap));
 
-  // Insight
-  set('s-ins-pct',    impPct + '%');
-  set('s-ins-gain',   f0(tpGain));
-  set('s-ins-before', f0(baseTp));
-  set('s-ins-after',  f0(newTp));
+  // Dynamic insight
+  updateSolutionInsight({
+    bottleneck_process:            bn,
+    improvement_factor:            factor,
+    throughput_gain:               tpGain,
+    optimized_throughput_per_year: newTp,
+    optimized_actual_repairs:      newTp,
+    system_throughput_per_year:    baseTp,
+    financial_savings_per_year:    savings,
+    next_bottleneck_process:       nextBn,
+    savings_type:                  savingsType,
+  });
+}
+
+function updateSolutionInsight(r) {
+  const bottleneck      = r.bottleneck_process || 'Booth';
+  const bottleneckName  = bottleneck.charAt(0).toUpperCase() + bottleneck.slice(1);
+  const improvementPct  = Math.round((r.improvement_factor || 1.2) * 100 - 100);
+  const throughputGain  = r.throughput_gain || (r.optimized_throughput_per_year - r.system_throughput_per_year) || 128;
+  const newThroughput   = r.optimized_throughput_per_year || r.optimized_actual_repairs || 1088;
+  const oldThroughput   = r.system_throughput_per_year || 960;
+  const pctGain         = ((throughputGain / (oldThroughput || 1)) * 100).toFixed(1);
+  const nextBottleneck     = r.next_bottleneck_process || 'Preparation';
+  const nextBottleneckName = nextBottleneck.charAt(0).toUpperCase() + nextBottleneck.slice(1);
+  const savingsType  = r.savings_type || 'Cost saving';
+  const isVerified   = improvementPct >= 30 && bottleneck.toLowerCase().includes('booth');
+
+  let title = '';
+  let body  = '';
+
+  if (throughputGain <= 0) {
+    title = `Process improvement drives cost saving \u2014 throughput is not the current constraint`;
+    body  = `The bodyshop is currently meeting demand without a capacity constraint. A ${improvementPct}% improvement on ${bottleneckName} reduces cycle time and non-paint cost per repair but does not unlock additional repairs. The primary benefit is cost efficiency \u2014 fewer hours and materials per job increases margin at current volume. Enter client spend in the Products tab to calculate the exact saving per repair step.`;
+  } else if (savingsType === 'Volume opportunity') {
+    title = `A ${improvementPct}% improvement on ${bottleneckName} creates capacity for ${throughputGain} additional repairs/yr`;
+    body  = `Throughput increases from ${oldThroughput} to ${newThroughput} repairs/yr \u2014 a ${pctGain}% output gain. With utilisation currently low, the opportunity is volume growth rather than cost reduction. ${nextBottleneckName} becomes the next stage to address after ${bottleneckName} is resolved. Enter client spend in Products to calculate the material cost of this improvement.`;
+  } else if (isVerified) {
+    title = `A ${improvementPct}% improvement on the ${bottleneckName} unlocks ${throughputGain} additional repairs/yr \u2014 PPAS verified claim`;
+    body  = `Throughput jumps from ${oldThroughput} to ${newThroughput}/yr \u2014 a ${pctGain}% output gain from the same workforce, no extra capacity needed. This ${improvementPct}% improvement is a verified product claim from the PPAS system. The constraint shifts to ${nextBottleneckName}, which becomes the next stage to address. Enter client consumable spend in Products to unlock a precise saving calculation.`;
+  } else {
+    title = `A ${improvementPct}% improvement on the ${bottleneckName} unlocks ${throughputGain} additional repairs/yr \u2014 no extra staff needed`;
+    body  = `Throughput jumps from ${oldThroughput} to ${newThroughput}/yr \u2014 a ${pctGain}% output gain from the same workforce. The constraint shifts to ${nextBottleneckName}, which becomes the next stage to address. After fixing the ${bottleneckName}, ${nextBottleneckName} in Steps 4+5 is where to focus next \u2014 the Products tab shows which EMM systems deliver this improvement and at what cost per repair.`;
+  }
+
+  const titleEl = document.getElementById('solution-insight-title');
+  const bodyEl  = document.getElementById('solution-insight-body');
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl)  bodyEl.textContent  = body;
 }
 
 function renderSimBars(containerId, bars, maxV) {
@@ -1308,8 +1481,9 @@ function buildStepRow(step, d) {
   const costStr = step.cost ? `€${step.cost.toFixed(2)}/repair` : '';
 
   let rowCls = 'step-row';
-  if (!step.disabled && on && step.highCost) rowCls += ' high-cost';
-  else if (!step.disabled && on && step.ambCost) rowCls += ' amb-cost';
+  if (step.disabled)      rowCls += ' step-disabled';
+  else if (step.highCost) rowCls += ' border-red';
+  else if (step.ambCost)  rowCls += ' border-amber';
 
   const subHtml = step.sub ? `<div class="step-sub">${step.sub}${step.pendingTag ? ' <span class="pill pill-amber" style="font-size:9px;padding:1px 5px;margin-left:4px;">pending</span>':''}</div>` : '';
 
@@ -1330,7 +1504,11 @@ function buildStepRow(step, d) {
     expandedHtml = `
       <div class="step-expanded">
         <div class="prod-grid">
-          ${STEP4_PRODS.map(p=>`<div class="prod-card"><div class="prod-name">${p.name}</div><div class="prod-brand">${p.brand}</div></div>`).join('')}
+          ${STEP4_PRODS.map(p=>`<div class="prod-card">
+            <div class="prod-name">${p.name}</div>
+            <div class="prod-brand">${p.brand}</div>
+            <div class="prod-detail">${p.claim ? `<span class="pill pill-green" style="font-size:9px;padding:1px 5px;">${p.claim}</span>` : p.cost}</div>
+          </div>`).join('')}
         </div>
         <div class="impact-row">
           <span class="pill pill-green">−30% time verified</span>
